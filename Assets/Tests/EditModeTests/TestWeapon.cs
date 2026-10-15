@@ -25,7 +25,7 @@ public class TestWeapon
         float accuracyDropoff = 0.01f;
         float meleeAccuracy = 0.9f;
         // Act
-        Weapon weapon = new Weapon(weaponName, weaponWeight, weaponCost, weaponDamage, meleeDamage, maxAmmo, reloadTime, fireRate, swingRate, meleeRange, numShots, slotsRequired, pointBlankAccuracy, accuracyDropoff, meleeAccuracy);
+        Weapon weapon = new Weapon(WeaponName.LightPistol, weaponName, weaponWeight, weaponCost, weaponDamage, meleeDamage, maxAmmo, reloadTime, fireRate, swingRate, meleeRange, numShots, slotsRequired, pointBlankAccuracy, accuracyDropoff, meleeAccuracy);
 
         // Assert
         Assert.AreEqual(weaponName, weapon.Name);
@@ -63,7 +63,7 @@ public class TestWeapon
         int numShots = 1;
         int slotsRequired = 1;
 
-        Weapon weapon = new Weapon(weaponName, weaponWeight, weaponCost, weaponDamage, meleeDamage, maxAmmo, reloadTime, fireRate, swingRate, meleeRange, numShots, slotsRequired);
+        Weapon weapon = new Weapon(WeaponName.LightPistol, weaponName, weaponWeight, weaponCost, weaponDamage, meleeDamage, maxAmmo, reloadTime, fireRate, swingRate, meleeRange, numShots, slotsRequired);
 
         // Act
         string description = weapon.GetDescription();
@@ -77,7 +77,7 @@ public class TestWeapon
     public void TestConsumeAmmo()
     {
         // Arrange
-        Weapon weapon = new Weapon("TestWeapon", Weight.Medium, 100, 25, 10, 30, 2.0f, 0.5f, 1.0f, 2, 1, 1);
+        Weapon weapon = new Weapon(WeaponName.MediumRifle, "TestWeapon", Weight.Medium, 100, 25, 10, 30, 2.0f, 0.5f, 1.0f, 2, 1, 1);
         int initialAmmo = weapon.CurrentAmmo;
         Assert.AreEqual(30, initialAmmo);
         Assert.AreEqual(0f, weapon.CooldownTime); // Ensure initial cooldown time is 0
@@ -100,7 +100,7 @@ public class TestWeapon
     public void TestSwingCooldown()
     {
         // Arrange
-        Weapon weapon = new Weapon("TestWeapon", Weight.Medium, 100, 25, 10, 30, 2.0f, 0.5f, 1.0f, 2, 1, 1);
+        Weapon weapon = new Weapon(WeaponName.MediumRifle, "TestWeapon", Weight.Medium, 100, 25, 10, 30, 2.0f, 0.5f, 1.0f, 2, 1, 1);
         float initialCooldown = weapon.CooldownTime;
         Assert.AreEqual(0f, initialCooldown);
 
@@ -113,7 +113,7 @@ public class TestWeapon
     public void TestUpdateCooldown_ZeroTime()
     {
         // Arrange
-        Weapon weapon = new Weapon("TestWeapon", Weight.Medium, 100, 25, 10, 30, 2.0f, 0.5f, 1.0f, 2, 1, 1);
+        Weapon weapon = new Weapon(WeaponName.MediumRifle, "TestWeapon", Weight.Medium, 100, 25, 10, 30, 2.0f, 0.5f, 1.0f, 2, 1, 1);
         float initialCooldown = weapon.CooldownTime;
         Assert.AreEqual(0f, initialCooldown);
 
@@ -132,7 +132,7 @@ public class TestWeapon
     public void TestUpdateCooldown_Decrease()
     {
         // Arrange
-        Weapon weapon = new Weapon("TestWeapon", Weight.Medium, 100, 25, 10, 30, 2.0f, 0.5f, 1.0f, 2, 1, 1);
+        Weapon weapon = new Weapon(WeaponName.MediumRifle, "TestWeapon", Weight.Medium, 100, 25, 10, 30, 2.0f, 0.5f, 1.0f, 2, 1, 1);
         weapon.ConsumeAmmo(5); // Set cooldown time to fire rate
         float initialCooldown = weapon.CooldownTime;
         Assert.AreEqual(weapon.FireRate, initialCooldown);
@@ -148,7 +148,7 @@ public class TestWeapon
     public void TestUpdateCooldown_LargeNumber()
     {
         // Arrange
-        Weapon weapon = new Weapon("TestWeapon", Weight.Medium, 100, 25, 10, 30, 2.0f, 0.5f, 1.0f, 2, 1, 1);
+        Weapon weapon = new Weapon(WeaponName.MediumRifle, "TestWeapon", Weight.Medium, 100, 25, 10, 30, 2.0f, 0.5f, 1.0f, 2, 1, 1);
         weapon.ConsumeAmmo(5); // Set cooldown time to fire rate
         float initialCooldown = weapon.CooldownTime;
         Assert.AreEqual(weapon.FireRate, initialCooldown);
@@ -164,7 +164,7 @@ public class TestWeapon
     public void TestReload()
     {
         // Arrange
-        Weapon weapon = new Weapon("TestWeapon", Weight.Medium, 100, 25, 10, 30, 2.0f, 0.5f, 1.0f, 2, 1, 1);
+        Weapon weapon = new Weapon(WeaponName.MediumRifle, "TestWeapon", Weight.Medium, 100, 25, 10, 30, 2.0f, 0.5f, 1.0f, 2, 1, 1);
         weapon.ConsumeAmmo(10); // Reduce ammo to test reload
         Assert.AreEqual(20, weapon.CurrentAmmo); // Ensure ammo is reduced
 
@@ -180,7 +180,7 @@ public class TestWeapon
     public void TestReload_AlreadyFull()
     {
         // Arrange
-        Weapon weapon = new Weapon("TestWeapon", Weight.Medium, 100, 25, 10, 30, 2.0f, 0.5f, 1.0f, 2, 1, 1);
+        Weapon weapon = new Weapon(WeaponName.MediumRifle, "TestWeapon", Weight.Medium, 100, 25, 10, 30, 2.0f, 0.5f, 1.0f, 2, 1, 1);
         Assert.AreEqual(30, weapon.CurrentAmmo); // Ensure ammo is full
 
         // Act
@@ -195,7 +195,7 @@ public class TestWeapon
     public void TestReload_ZeroAmmo()
     {
         // Arrange
-        Weapon weapon = new Weapon("TestWeapon", Weight.Medium, 100, 25, 10, 30, 2.0f, 0.5f, 1.0f, 2, 1, 1);
+        Weapon weapon = new Weapon(WeaponName.MediumRifle, "TestWeapon", Weight.Medium, 100, 25, 10, 30, 2.0f, 0.5f, 1.0f, 2, 1, 1);
         weapon.ConsumeAmmo(30); // Reduce ammo to zero
         Assert.AreEqual(0, weapon.CurrentAmmo); // Ensure ammo is zero
 
@@ -211,7 +211,7 @@ public class TestWeapon
     public void TestCalculateSpread()
     {
         // Arrange
-        Weapon weapon = new Weapon("TestWeapon", Weight.Medium, 100, 25, 10, 30, 2.0f, 0.5f, 1.0f, 2, 1, 1);
+        Weapon weapon = new Weapon(WeaponName.MediumRifle, "TestWeapon", Weight.Medium, 100, 25, 10, 30, 2.0f, 0.5f, 1.0f, 2, 1, 1);
         float distance = 50f; // Example distance
         float expectedSpread = weapon.AccuracyDropoff * distance;
 
@@ -226,7 +226,7 @@ public class TestWeapon
     public void TestCalculateSpread_ZeroDistance()
     {
         // Arrange
-        Weapon weapon = new Weapon("TestWeapon", Weight.Medium, 100, 25, 10, 30, 2.0f, 0.5f, 1.0f, 2, 1, 1);
+        Weapon weapon = new Weapon(WeaponName.MediumRifle, "TestWeapon", Weight.Medium, 100, 25, 10, 30, 2.0f, 0.5f, 1.0f, 2, 1, 1);
         float distance = 0f; // Zero distance
         float expectedSpread = weapon.AccuracyDropoff * distance;
 
@@ -241,7 +241,7 @@ public class TestWeapon
     public void TestCanAttack_OnCooldown()
     {
         // Arrange
-        Weapon weapon = new Weapon("TestWeapon", Weight.Medium, 100, 25, 10, 30, 2.0f, 0.5f, 1.0f, 2, 1, 1);
+        Weapon weapon = new Weapon(WeaponName.MediumRifle, "TestWeapon", Weight.Medium, 100, 25, 10, 30, 2.0f, 0.5f, 1.0f, 2, 1, 1);
         weapon.ConsumeAmmo(5); // Set cooldown time to fire rate
 
         // Act
@@ -255,7 +255,7 @@ public class TestWeapon
     public void TestCanAttack_NoAmmo_Ranged()
     {
         // Arrange
-        Weapon weapon = new Weapon("TestWeapon", Weight.Medium, 100, 25, 10, 30, 2.0f, 0.5f, 1.0f, 2, 1, 1);
+        Weapon weapon = new Weapon(WeaponName.MediumRifle, "TestWeapon", Weight.Medium, 100, 25, 10, 30, 2.0f, 0.5f, 1.0f, 2, 1, 1);
         weapon.ConsumeAmmo(30); // Reduce ammo to zero
         weapon.UpdateCooldown(weapon.FireRate); // Ensure cooldown is reset to 0
 
@@ -270,7 +270,7 @@ public class TestWeapon
     public void TestCanAttack_NoAmmo_Melee()
     {
         // Arrange
-        Weapon weapon = new Weapon("TestWeapon", Weight.Medium, 100, 25, 10, 30, 2.0f, 0.5f, 1.0f, 2, 1, 1);
+        Weapon weapon = new Weapon(WeaponName.LightSword, "TestWeapon", Weight.Medium, 100, 25, 10, 30, 2.0f, 0.5f, 1.0f, 2, 1, 1);
         weapon.ConsumeAmmo(30); // Reduce ammo to zero
         weapon.UpdateCooldown(weapon.FireRate); // Ensure cooldown is reset to 0
 
@@ -285,7 +285,7 @@ public class TestWeapon
     public void TestCanAttack_Valid()
     {
         // Arrange
-        Weapon weapon = new Weapon("TestWeapon", Weight.Medium, 100, 25, 10, 30, 2.0f, 0.5f, 1.0f, 2, 1, 1);
+        Weapon weapon = new Weapon(WeaponName.MediumRifle, "TestWeapon", Weight.Medium, 100, 25, 10, 30, 2.0f, 0.5f, 1.0f, 2, 1, 1);
 
         // Act
         bool canAttack = weapon.CanAttack(20f);
@@ -298,7 +298,7 @@ public class TestWeapon
     public void TestGetAverageDamage_Ranged()
     {
         // Arrange
-        Weapon weapon = new Weapon("TestWeapon", Weight.Medium, 100, 25, 10, 30, 2.0f, 0.5f, 1.0f, 2, 1, 1);
+        Weapon weapon = new Weapon(WeaponName.MediumRifle, "TestWeapon", Weight.Medium, 100, 25, 10, 30, 2.0f, 0.5f, 1.0f, 2, 1, 1);
 
 
         // Act
@@ -312,7 +312,7 @@ public class TestWeapon
     public void TestGetAverageDamage_Melee()
     {
         // Arrange
-        Weapon weapon = new Weapon("TestWeapon", Weight.Medium, 100, 25, 10, 30, 2.0f, 0.5f, 1.0f, 2, 1, 1);
+        Weapon weapon = new Weapon(WeaponName.LightSword, "TestWeapon", Weight.Medium, 100, 25, 10, 30, 2.0f, 0.5f, 1.0f, 2, 1, 1);
 
         // Act
         float averageDamage = weapon.GetAverageDamage(1f); // Assuming a distance of 1 unit (melee range)

@@ -1,9 +1,10 @@
 using UnityEngine;
 using System;
 using HeartOfIron.Enums;
+using HeartOfIron.Structs;
 
 [Serializable]
-public class EnergyShield : Item, IDamageable
+public class EnergyShield : Item
 {
     [SerializeField] private float maxCapacity;
     public float MaxCapacity => maxCapacity;
@@ -28,7 +29,7 @@ public class EnergyShield : Item, IDamageable
 
     public void UpdateRecharge(float deltaTime)
     {
-        if (currentCapacity <= maxCapacity)
+        if (currentCapacity < maxCapacity)
         {
             while (deltaTime > 0f)
             {

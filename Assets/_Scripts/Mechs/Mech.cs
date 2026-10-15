@@ -1,6 +1,7 @@
 using UnityEngine;
 using System;
 using HeartOfIron.Enums;
+using HeartOfIron.Structs;
 
 [Serializable]
 public class Mech
@@ -103,69 +104,53 @@ public class Mech
         this._pilot = pilot;
     }
 
-    public float TakeDamage(float damageAmount, int location, bool radiateDamage = false)
+    public DamageReport TakeDamage(float damageAmount, int location, bool radiateDamage = false)
     {
         if (location < 0 || location >= _health.Length)
         {
             Debug.LogError($"Invalid location index {location} for mech {_name}. Damage not applied.");
-            return 0f;
+            return new DamageReport(0f, 0f);
         }
         float remainingDamage = damageAmount;
-        if (Inventory.EnergyShield != null)
+        float flag = 0f;
+        if (_inventory.EnergyShield != null && remainingDamage > 0)
         {
-            remainingDamage = Inventory.EnergyShield.TakeDamage(remainingDamage);
+            remainingDamage = _inventory.EnergyShield.TakeDamage(remainingDamage, location);
+            flag = 2f;
         }
-        // Debug.Log($"After ES, {remainingDamage}");
-        if (Inventory.Armors != null)
+        if (_inventory.Armors[location] != null && remainingDamage > 0)
         {
-            switch (location)
+            remainingDamage = _inventory.Armors[location].TakeDamage(remainingDamage, location);
+            flag = 1f;
+        }
+        float overflowDamage = 0f;
+        if (remainingDamage > 0)
+        {
+            _health[location] -= remainingDamage;
+            flag = 0f;
+            overflowDamage = -_health[location];
+            if (_health[location] < 0)
             {
-                case 0:
-                    if (Inventory.Armors[(int)ArmorType.Head] != null)
-                    {
-                        remainingDamage = Inventory.Armors[(int)ArmorType.Head].TakeDamage(remainingDamage);
-                    }
-                    break;
-                case 1:
-                    if (Inventory.Armors[(int)ArmorType.Torso] != null)
-                    {
-                        remainingDamage = Inventory.Armors[(int)ArmorType.Torso].TakeDamage(remainingDamage);
-                    }
-                    break;
-                case 2:
-                case 3:
-                    if (Inventory.Armors[(int)ArmorType.Arms] != null)
-                    {
-                        remainingDamage = Inventory.Armors[(int)ArmorType.Arms].TakeDamage(remainingDamage, location % 2);
-                    }
-                    break;
-                case 4:
-                case 5:
-                    if (Inventory.Armors[(int)ArmorType.Legs] != null)
-                    {
-                        remainingDamage = Inventory.Armors[(int)ArmorType.Legs].TakeDamage(remainingDamage, location % 2);
-                    }
-                    break;
-                default:
-                    break;
+                int nextLocation = (location + 1) % _health.Length;
+                while (overflowDamage > 0 && !radiateDamage && nextLocation != location)
+                {
+                    float damageToNextLocation = UnityEngine.Random.Range(0, overflowDamage);
+                    overflowDamage -= damageToNextLocation;
+                    overflowDamage += TakeDamage(damageToNextLocation, nextLocation, true).remainingDamage;
+                    nextLocation = (nextLocation + 1) % _health.Length;
+                }
+                _health[location] = 0;
             }
         }
-        _health[location] -= remainingDamage;
-        float overflowDamage = -_health[location];
-        if (_health[location] < 0)
+        Debug.Log($"Mech {_name} took {damageAmount} damage to location {location}. Remaining health: {_health[location]}");
+        if (radiateDamage)
         {
-            int nextLocation = (location + 1) % _health.Length;
-            while (overflowDamage > 0 && !radiateDamage && nextLocation != location)
-            {
-                float damageToNextLocation = UnityEngine.Random.Range(0, overflowDamage);
-                overflowDamage -= damageToNextLocation;
-                overflowDamage += TakeDamage(damageToNextLocation, nextLocation, true);
-                nextLocation = (nextLocation + 1) % _health.Length;
-            }
-            _health[location] = 0;
+            return new DamageReport(overflowDamage, flag);
+        } else
+        {
+            return new DamageReport(overflowDamage, flag);
         }
-        Debug.Log($"Mech {_name} took {remainingDamage} damage to location {location}. Remaining health: {_health[location]}");
-        return overflowDamage; // Return any overflow damage that couldn't be applied
+        
     }
 
     public void RepairAll(float repairAmount)
@@ -193,43 +178,45 @@ public class Mech
         {
             _health[location] = _maxHealth[location];
         }
-        if (Inventory.Armors != null)
+        Armor[] armors = _inventory.Armors;
+        if (armors != null )
         {
             switch (location)
             {
                 case 0:
-                    if (Inventory.Armors[(int)ArmorType.Head] != null)
+                    if (armors[0] != null)
                     {
-                        Inventory.Armors[(int)ArmorType.Head].Repair(repairAmount);
+                        armors[0].Repair(repairAmount);
                     }
                     break;
                 case 1:
-                    if (Inventory.Armors[(int)ArmorType.Torso] != null)
+                    if (armors[1] != null)
                     {
-                        Inventory.Armors[(int)ArmorType.Torso].Repair(repairAmount);
+                        armors[1].Repair(repairAmount);
                     }
                     break;
                 case 2:
                 case 3:
-                    if (Inventory.Armors[(int)ArmorType.Arms] != null)
+                    if (armors[2] != null)
                     {
-                        Inventory.Armors[(int)ArmorType.Arms].Repair(repairAmount, location % 2);
+                        armors[2].Repair(repairAmount, location % 2);
                     }
                     break;
                 case 4:
                 case 5:
-                    if (Inventory.Armors[(int)ArmorType.Legs] != null)
+                    if (armors[3] != null)
                     {
-                        Inventory.Armors[(int)ArmorType.Legs].Repair(repairAmount, location % 2);
+                        armors[3].Repair(repairAmount, location % 2);
                     }
                     break;
                 default:
                     break;
             }
         }
-        if (Inventory.EnergyShield != null)
+        EnergyShield energyShield = _inventory.EnergyShield;
+        if (energyShield != null)
         {
-            Inventory.EnergyShield.Repair(repairAmount);
+            energyShield.Repair(repairAmount);
         }
         Debug.Log($"Mech {_name} repaired {repairAmount} health at location {location}. Current health: {_health[location]}");
     }
@@ -239,42 +226,43 @@ public class Mech
         float effectiveHealth = 0f;
         float effectiveMaxHealth = 0f;
         // Debug.Log($"Mech {_name} effective health calculation started. Initial effective health: {effectiveHealth}, effective max health: {effectiveMaxHealth}");
+        Armor[] armors = _inventory.Armors;
         for (int i = 0; i < _health.Length; i++)
         {
             float armorHealth = 0f;
             float armorMaxHealth = 0f;
-            if (Inventory.Armors != null)
+            if (armors != null)
             {
                 switch (i)
                 {
                     case 0:
-                        if (Inventory.Armors[(int)ArmorType.Head] != null)
+                        if (armors[0] != null)
                         {
-                            armorHealth = Inventory.Armors[(int)ArmorType.Head].GetDurability();
-                            armorMaxHealth = Inventory.Armors[(int)ArmorType.Head].MaxDurability;
+                            armorHealth = armors[0].GetDurability();
+                            armorMaxHealth = armors[0].MaxDurability;
                         }
                         break;
                     case 1:
-                        if (Inventory.Armors[(int)ArmorType.Torso] != null)
+                        if (armors[1] != null)
                         {
-                            armorHealth = Inventory.Armors[(int)ArmorType.Torso].GetDurability();
-                            armorMaxHealth = Inventory.Armors[(int)ArmorType.Torso].MaxDurability;
+                            armorHealth = armors[1].GetDurability();
+                            armorMaxHealth = armors[1].MaxDurability;
                         }
                         break;
                     case 2:
                     case 3:
-                        if (Inventory.Armors[(int)ArmorType.Arms] != null)
+                        if (armors[2] != null)
                         {
-                            armorHealth = Inventory.Armors[(int)ArmorType.Arms].GetDurability(i % 2);
-                            armorMaxHealth = Inventory.Armors[(int)ArmorType.Arms].MaxDurability;
+                            armorHealth = armors[2].GetDurability(i % 2);
+                            armorMaxHealth = armors[2].MaxDurability;
                         }
                         break;
                     case 4:
                     case 5:
-                        if (Inventory.Armors[(int)ArmorType.Legs] != null)
+                        if (armors[3] != null)
                         {
-                            armorHealth = Inventory.Armors[(int)ArmorType.Legs].GetDurability(i % 2);
-                            armorMaxHealth = Inventory.Armors[(int)ArmorType.Legs].MaxDurability;
+                            armorHealth = armors[3].GetDurability(i % 2);
+                            armorMaxHealth = armors[3].MaxDurability;
                         }
                         break;
                     default:
@@ -285,10 +273,11 @@ public class Mech
             effectiveMaxHealth += armorMaxHealth;
         }
         // Debug.Log($"Mech {_name} effective health armor calculation completed. Effective health: {effectiveHealth}, effective max health: {effectiveMaxHealth}");
-        if (Inventory.EnergyShield != null)
+        EnergyShield energyShield = _inventory.EnergyShield;
+        if (energyShield != null)
         {
-            effectiveHealth += Inventory.EnergyShield.CurrentCapacity;
-            effectiveMaxHealth += Inventory.EnergyShield.MaxCapacity;
+            effectiveHealth += energyShield.CurrentCapacity;
+            effectiveMaxHealth += energyShield.MaxCapacity;
         }
         // Debug.Log($"Mech {_name} effective health shield calculation completed. Effective health: {effectiveHealth}, effective max health: {effectiveMaxHealth}");
         for (int i = 0; i < _health.Length; i++)

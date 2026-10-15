@@ -9,7 +9,7 @@ public class TestMech
 {
     private Weapon Create1HRangedWeapon()
     {
-        return new Weapon("Test1HRangedWeapon", Weight.Light, 100, 25, 15, 30, 0.8f, 0.1f, 0.5f, 5, 1, 1);
+        return new Weapon(WeaponName.LightPistol, "Test1HRangedWeapon", Weight.Light, 100, 25, 15, 30, 0.8f, 0.1f, 0.5f, 5, 1, 1);
     }
     
     private Armor CreateArmor()

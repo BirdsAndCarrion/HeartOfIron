@@ -31,7 +31,7 @@ public static class ItemAssembler
             float adjustedFireRate = AdjustFireRate(wB.FireRate);
             float adjustedSwingRate = AdjustSwingRate(wB.SwingRate);
 
-            return new Weapon(wB.ItemName, wB.Weight, wB.Cost, adjustedDamage, adjustedMeleeDamage, adjustedMaxAmmo, adjustedReloadTime, adjustedFireRate, adjustedSwingRate, wB.MeleeRange, wB.NumShots, wB.SlotsRequired, adjustedPointBlankAccuracy, adjustedAccuracyDropoff, adjustedMeleeAccuracy);
+            return new Weapon(wB.WeaponName, wB.ItemName, wB.Weight, wB.Cost, adjustedDamage, adjustedMeleeDamage, adjustedMaxAmmo, adjustedReloadTime, adjustedFireRate, adjustedSwingRate, wB.MeleeRange, wB.NumShots, wB.SlotsRequired, adjustedPointBlankAccuracy, adjustedAccuracyDropoff, adjustedMeleeAccuracy);
         } else if (blueprint is MechBlueprint mB)
         {
             UnitManager.Instance.AddMech(MechAssembler.AssembleNewMech(mB));

@@ -51,9 +51,9 @@ public class TestActionsPlayMode
         sourceMechController.Animator = sourceMechObject.AddComponent<Animator>();
         sourceMechController.Initialize(sourceMech);
 
-        Weapon weapon = new Weapon("Test weapon", Weight.Light, 100, 10, 5, 20, 1.5f, 0.5f, 1.0f, 5, 1, 1);
+        Weapon weapon = new Weapon(WeaponName.LightPistol, "Test weapon", Weight.Light, 100, 10, 5, 20, 1.5f, 0.5f, 1.0f, 5, 1, 1);
         sourceMech.EquipWeapon(weapon);
-        Weapon weapon2 = new Weapon("Test melee weapon", Weight.Light, 100, 0, 15, 0, 0f, 0f, 0f, 5, 1, 1);
+        Weapon weapon2 = new Weapon(WeaponName.LightSword, "Test melee weapon", Weight.Light, 100, 0, 15, 0, 0f, 0f, 0f, 5, 1, 1);
         sourceMech.EquipWeapon(weapon2);
 
         // Create target Mech

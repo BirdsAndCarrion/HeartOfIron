@@ -288,36 +288,37 @@ public class CombatUIManager : MonoBehaviour
 
     private void UpdateArmorBars(MechController mechController)
     {
-        if (mechController.Mech.Inventory.Armors[0] != null)
+        Armor[] armors = mechController.GetInventory().Armors;
+        if (armors[(int)ArmorType.Head] != null)
         {
-            UpdateResourceBar(mechController.Mech.Inventory.Armors[(int)ArmorType.Head].CurrentDurabilityR, mechController.Mech.Inventory.Armors[(int)ArmorType.Head].MaxDurability, _headArmorBar);
+            UpdateResourceBar(armors[(int)ArmorType.Head].GetDurability(), armors[(int)ArmorType.Head].MaxDurability, _headArmorBar);
         }
         else
         {
             UpdateResourceBar(0, 1, _headArmorBar); // Set to empty if no armor
         }
-        if (mechController.Mech.Inventory.Armors[(int)ArmorType.Torso] != null)
+        if (armors[(int)ArmorType.Torso] != null)
         {
-            UpdateResourceBar(mechController.Mech.Inventory.Armors[(int)ArmorType.Torso].CurrentDurabilityR, mechController.Mech.Inventory.Armors[(int)ArmorType.Torso].MaxDurability, _torsoArmorBar);
+            UpdateResourceBar(armors[(int)ArmorType.Torso].GetDurability(), armors[(int)ArmorType.Torso].MaxDurability, _torsoArmorBar);
         }
         else
         {
             UpdateResourceBar(0, 1, _torsoArmorBar); // Set to empty if no armor
         }
-        if (mechController.Mech.Inventory.Armors[(int)ArmorType.Arms] != null)
+        if (armors[(int)ArmorType.Arms] != null)
         {
-            UpdateResourceBar(mechController.Mech.Inventory.Armors[(int)ArmorType.Arms].CurrentDurabilityR, mechController.Mech.Inventory.Armors[(int)ArmorType.Arms].MaxDurability, _rightArmArmorBar);
-            UpdateResourceBar(mechController.Mech.Inventory.Armors[(int)ArmorType.Arms].CurrentDurabilityL, mechController.Mech.Inventory.Armors[(int)ArmorType.Arms].MaxDurability, _leftArmArmorBar);
+            UpdateResourceBar(armors[(int)ArmorType.Arms].GetDurability(1), armors[(int)ArmorType.Arms].MaxDurability, _rightArmArmorBar);
+            UpdateResourceBar(armors[(int)ArmorType.Arms].GetDurability(0), armors[(int)ArmorType.Arms].MaxDurability, _leftArmArmorBar);
         }
         else
         {
             UpdateResourceBar(0, 1, _rightArmArmorBar); // Set to empty if no armor
             UpdateResourceBar(0, 1, _leftArmArmorBar); // Set to empty if no armor
         }
-        if (mechController.Mech.Inventory.Armors[(int)ArmorType.Legs] != null)
+        if (armors[(int)ArmorType.Legs] != null)
         {
-            UpdateResourceBar(mechController.Mech.Inventory.Armors[(int)ArmorType.Legs].CurrentDurabilityL, mechController.Mech.Inventory.Armors[(int)ArmorType.Legs].MaxDurability, _leftLegArmorBar);
-            UpdateResourceBar(mechController.Mech.Inventory.Armors[(int)ArmorType.Legs].CurrentDurabilityR, mechController.Mech.Inventory.Armors[(int)ArmorType.Legs].MaxDurability, _rightLegArmorBar);
+            UpdateResourceBar(armors[(int)ArmorType.Legs].GetDurability(0), armors[(int)ArmorType.Legs].MaxDurability, _leftLegArmorBar);
+            UpdateResourceBar(armors[(int)ArmorType.Legs].GetDurability(1), armors[(int)ArmorType.Legs].MaxDurability, _rightLegArmorBar);
         }
         else
         {
@@ -328,9 +329,10 @@ public class CombatUIManager : MonoBehaviour
 
     private void UpdateEnergyShieldBar(MechController mechController)
     {
-        if (mechController.Mech.Inventory.EnergyShield != null)
+        EnergyShield energyShield = mechController.GetInventory().EnergyShield;
+        if (energyShield != null)
         {
-            UpdateResourceBar(mechController.Mech.Inventory.EnergyShield.CurrentCapacity, mechController.Mech.Inventory.EnergyShield.MaxCapacity, _energyShieldBar);
+            UpdateResourceBar(energyShield.CurrentCapacity, energyShield.MaxCapacity, _energyShieldBar);
         }
         else
         {

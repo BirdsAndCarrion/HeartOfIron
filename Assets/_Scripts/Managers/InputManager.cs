@@ -14,7 +14,7 @@ public class InputManager : MonoBehaviour
     private Vector3 _movementInput;
     private bool _isHoldingRotation = false;
     private Vector2 _rotationInput;
-    [SerializeField] private float _movementSpeed = 10f;
+    [SerializeField] private float _movementSpeed = 1f;
     [SerializeField] private float _rotationSpeed = 20f;
     [SerializeField] private float _minCameraHeight = 5f; // Minimum height for the camera
     [SerializeField] private float _maxCameraHeight; // Maximum height for the camera

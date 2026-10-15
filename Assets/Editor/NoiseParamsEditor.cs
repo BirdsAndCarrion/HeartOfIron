@@ -15,6 +15,26 @@ public class NoiseParamsEditor : Editor
             if (terrainGenerator != null)
             {
                 terrainGenerator.GenerateHeightmap(noiseParams);
+                terrainGenerator.PlaceObjectsOnTerrain(noiseParams.CoverObjects, noiseParams.BuildingObjects, terrainGenerator.GetHeatMapData(), noiseParams.CoverDensity);
+            }
+        }
+
+        if (GUILayout.Button("Clear Placed Objects"))
+        {
+            TerrainGenerator terrainGenerator = FindFirstObjectByType<TerrainGenerator>();
+            if (terrainGenerator != null)
+            {
+                foreach (GameObject coverObject in terrainGenerator.CoverObjectParent)
+                {
+                    DestroyImmediate(coverObject);
+                }
+                terrainGenerator.CoverObjectParent.Clear();
+
+                foreach (GameObject buildingObject in terrainGenerator.BuildingObjectParent)
+                {
+                    DestroyImmediate(buildingObject);
+                }
+                terrainGenerator.BuildingObjectParent.Clear();
             }
         }
     }

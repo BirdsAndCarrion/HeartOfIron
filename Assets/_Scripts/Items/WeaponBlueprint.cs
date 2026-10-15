@@ -1,11 +1,14 @@
 using UnityEngine;
 using System;
+using HeartOfIron.Enums;
 
 [CreateAssetMenu(fileName = "WeaponBlueprint", menuName = "Scriptable Objects/WeaponBlueprint")]
 [Serializable]
 public class WeaponBlueprint : ItemBlueprint
 {
     [Header("Weapon Properties")]
+    [SerializeField] private WeaponName weaponName;
+    public WeaponName WeaponName => weaponName;
     [SerializeField] private int slotsRequired;
     public int SlotsRequired => slotsRequired;
     [Header("Weapon Shooting Stats")]

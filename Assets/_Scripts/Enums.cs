@@ -58,6 +58,8 @@ namespace HeartOfIron.Enums
     {
         Weapon,
         Armor,
+        ArmorSet,
+        ShieldPlating,
         EnergyShield,
         Mech,
     }
@@ -168,5 +170,27 @@ namespace HeartOfIron.Enums
         Victory,
         Survived,
         Defeat,
+    }
+
+    public enum WeaponName
+    {
+        MediumRifle,
+        LightPistol,
+        LightSword,
+        MediumSword
+    }
+
+    public enum StructureType
+    {
+        Cover,
+        Building,
+        
+    }
+
+    public enum CoverFormation
+    {
+        Wall,
+        Cluster,
+        Single
     }
 }

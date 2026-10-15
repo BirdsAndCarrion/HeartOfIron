@@ -1,9 +1,10 @@
 using UnityEngine;
 using System;
 using HeartOfIron.Enums;
+using HeartOfIron.Structs;
 
 [Serializable]
-public class Armor : Item, IDamageable
+public class Armor : Item
 {
     [SerializeField] private ArmorType armorType;
     public ArmorType ArmorType => armorType;

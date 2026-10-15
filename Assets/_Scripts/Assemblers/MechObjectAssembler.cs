@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using HeartOfIron.Enums;
 
 public class MechObjectAssembler : MonoBehaviour
 {
@@ -9,8 +10,8 @@ public class MechObjectAssembler : MonoBehaviour
     [SerializeField] private GameObject _mechPrefab;
     [SerializeField] private GameObject _mechPrefabWController; // New prefab with MechController attached
     [SerializeField] private float MECH_SCALE = 1.0f; // Adjust the scale as needed
-
-    // TODO: Add fields for all weapon prefabs (list?)
+    [SerializeField] private WeaponPrefabsList _weaponPrefabsList;
+    
 
     void Awake()
     {
@@ -24,7 +25,6 @@ public class MechObjectAssembler : MonoBehaviour
         }
     }
 
-    // TODO: Update this method based on the new MechController initialization logic
     public MechController AssembleMechObject(Mech mechData, Vector3 position, Quaternion rotation)
     {
         GameObject mechObject = Instantiate(_mechPrefabWController, position, rotation);
@@ -37,19 +37,31 @@ public class MechObjectAssembler : MonoBehaviour
         MechController mechController = mechObject.GetComponent<MechController>();
         mechController.Initialize(mechData);
         mechObject.name = $"Mech_{mechData.Name}";
-        EquippingModule equippingModule = mechObject.GetComponent<EquippingModule>();
         List<ShootProjectile> shootProjectiles = new List<ShootProjectile>();
-        // TODO: Add logic for attaching weapon prefabs to the mech based on the mechData's equipped weapons
+        for (int i = 0; i < mechData.Inventory.Weapons.Length; i++)
+        {
+            Weapon weapon = mechData.Inventory.Weapons[i];
+            if (weapon == null) continue;
             // Get prefabs from fields of MechObjectAssembler
+            GameObject weaponPrefab = _weaponPrefabsList.GetPrefabByWeaponName(weapon.WeaponName);
+            if (weaponPrefab == null) continue;
             // Find ShootProjectile component in the mechObject's children and add them to the list
-            ShootProjectile shootProjectileComponent = mechObject.GetComponentInChildren<ShootProjectile>();
+            ShootProjectile shootProjectileComponent = weaponPrefab.GetComponentInChildren<ShootProjectile>();
             // Add the ShootProjectile that should be found for all ranged weapons
             if (shootProjectileComponent != null)
             {
                 shootProjectiles.Add(shootProjectileComponent);
             }
-            // Name the attached weapon prefabs based on the weapon's name for easier identification
+            weaponPrefab.name = weapon.Name; // Name the attached weapon prefab based on the weapon's name
             // Pass prefabs into the equipping module for proper attachment to the mech
+            if (weapon.SlotsRequired == 1)
+            {
+                mechController.EquippingModule.EquipOneHandedItem(weaponPrefab, i == (int)Hand.Right);
+            } else if (weapon.SlotsRequired == 2)
+            {
+                mechController.EquippingModule.EquipTwoHandedItem(weaponPrefab, weapon.IsMelee);
+            }
+        }
         mechController.SetShootProjectiles(shootProjectiles.ToArray());
         mechObject.transform.localScale = Vector3.one * MECH_SCALE; // Adjust the scale as needed
         Debug.Log($"Assembled Mech: {mechData.Name} at position {position}");

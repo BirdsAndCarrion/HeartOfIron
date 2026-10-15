@@ -134,6 +134,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MechVision
   visionRadius: 10
   visionAngle: 90
+  OnMechSpotted:
+    m_PersistentCalls:
+      m_Calls: []
+  OnMechLost:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &5329749918098763076
 GameObject:
   m_ObjectHideFlags: 0
@@ -180,6 +186,7 @@ GameObject:
   - component: {fileID: 3559904740956260498}
   - component: {fileID: 2805850017833249621}
   - component: {fileID: 3351203931625400994}
+  - component: {fileID: 2695917264476043890}
   - component: {fileID: 8830283530731127444}
   m_Layer: 0
   m_Name: Mech
@@ -350,6 +357,42 @@ MonoBehaviour:
   ACTION_MARKER_REACHED_THRESHOLD: 1.5
   MOVE_TIMER_RESET_VALUE: 0.5
   MOVING_AIM_PENALTY: 0.1
+  _navMeshAgent: {fileID: 3559904740956260498}
+  _equippingModule: {fileID: 2695917264476043890}
+  Target: {fileID: 0}
+  Head: {fileID: 0}
+  Torso: {fileID: 0}
+  LeftArm: {fileID: 0}
+  RightArm: {fileID: 0}
+  LeftLeg: {fileID: 0}
+  RightLeg: {fileID: 0}
+  Animator: {fileID: 0}
+--- !u!114 &2695917264476043890
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9125135968955309131}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b341c3bafbfe5c46b0f319d24a9ecc3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TestModule::EquippingModule
+  shoulderLocation: {fileID: 0}
+  handLocationR: {fileID: 0}
+  handLocationL: {fileID: 0}
+  RArmRig: {fileID: 0}
+  RArmIK: {fileID: 0}
+  LArmRig: {fileID: 0}
+  LArmIK: {fileID: 0}
+  AimRig: {fileID: 0}
+  AimConstraint: {fileID: 0}
+  AimAimConstraint: {fileID: 0}
+  RHandAimRig: {fileID: 0}
+  RHandAimConstraint: {fileID: 0}
+  LHandAimRig: {fileID: 0}
+  LHandAimConstraint: {fileID: 0}
 --- !u!114 &8830283530731127444
 MonoBehaviour:
   m_ObjectHideFlags: 0

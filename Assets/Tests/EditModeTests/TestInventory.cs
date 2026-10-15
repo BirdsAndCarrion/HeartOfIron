@@ -13,22 +13,22 @@ public class TestInventory
 
     private Weapon Create1HRangedWeapon()
     {
-        return new Weapon("Test1HRangedWeapon", Weight.Light, 100, 25, 15, 30, 0.8f, 0.1f, 0.5f, 5, 1, 1);
+        return new Weapon(WeaponName.LightPistol, "Test1HRangedWeapon", Weight.Light, 100, 25, 15, 30, 0.8f, 0.1f, 0.5f, 5, 1, 1);
     }
 
     private Weapon Create2HRangedWeapon()
     {
-        return new Weapon("Test2HRangedWeapon", Weight.Medium, 150, 35, 20, 40, 0.7f, 0.15f, 0.6f, 5, 1, 2);
+        return new Weapon(WeaponName.MediumRifle, "Test2HRangedWeapon", Weight.Medium, 150, 35, 20, 40, 0.7f, 0.15f, 0.6f, 5, 1, 2);
     }
 
     private Weapon Create1HMeleeWeapon()
     {
-        return new Weapon("Test1HMeleeWeapon", Weight.Light, 80, 0, 40, 0, 0f, 0f, 0.4f, 5, 1, 1, 0f, 1f, 0.9f);
+        return new Weapon(WeaponName.LightSword, "Test1HMeleeWeapon", Weight.Light, 80, 0, 40, 0, 0f, 0f, 0.4f, 5, 1, 1, 0f, 1f, 0.9f);
     }
 
     private Weapon Create2HMeleeWeapon()
     {
-        return new Weapon("Test2HMeleeWeapon", Weight.Medium, 120, 0, 50, 0, 0f, 0f, 0.5f, 5, 1, 2, 0f, 1f, 0.85f);
+        return new Weapon(WeaponName.MediumSword, "Test2HMeleeWeapon", Weight.Medium, 120, 0, 50, 0, 0f, 0f, 0.5f, 5, 1, 2, 0f, 1f, 0.85f);
     }
 
     private Armor CreateArmor()
@@ -470,7 +470,7 @@ public class TestInventory
         Mech owner = CreateTestMech();
         Inventory inventory = new Inventory();
         Weapon weapon1 = Create1HRangedWeapon();
-        Weapon weapon2 = new Weapon("OtherTest1HRangedWeapon", Weight.Light, 100, 20, 10, 25, 0.9f, 0.1f, 0.5f, 5, 1, 1, 0.75f, 0.1f, 0.5f); // Another ranged weapon
+        Weapon weapon2 = new Weapon(WeaponName.LightPistol, "OtherTest1HRangedWeapon", Weight.Light, 100, 20, 10, 25, 0.9f, 0.1f, 0.5f, 5, 1, 1, 0.75f, 0.1f, 0.5f); // Another ranged weapon
         inventory.EquipWeapon(weapon1, owner);
         inventory.EquipWeapon(weapon2, owner);
 
@@ -524,7 +524,7 @@ public class TestInventory
         Mech owner = CreateTestMech();
         Inventory inventory = new Inventory();
         Weapon weapon1 = Create1HRangedWeapon();
-        Weapon weapon2 = new Weapon("OtherTest1HRangedWeapon", Weight.Light, 100, 20, 10, 25, 0.9f, 0.1f, 0.5f, 5, 1, 1, 0.75f, 0.1f, 0.5f); // Another ranged weapon
+        Weapon weapon2 = new Weapon(WeaponName.LightPistol, "OtherTest1HRangedWeapon", Weight.Light, 100, 20, 10, 25, 0.9f, 0.1f, 0.5f, 5, 1, 1, 0.75f, 0.1f, 0.5f); // Another ranged weapon
         inventory.EquipWeapon(weapon1, owner);
         inventory.EquipWeapon(weapon2, owner);
 
@@ -547,7 +547,7 @@ public class TestInventory
         Mech owner = CreateTestMech();
         Inventory inventory = new Inventory();
         Weapon weapon1 = Create1HRangedWeapon();
-        Weapon weapon2 = new Weapon("OtherTest1HRangedWeapon", Weight.Light, 100, 20, 10, 25, 0.9f, 0.1f, 0.5f, 5, 1, 1, 0.75f, 0.1f, 0.5f); // Another ranged weapon
+        Weapon weapon2 = new Weapon(WeaponName.LightPistol, "OtherTest1HRangedWeapon", Weight.Light, 100, 20, 10, 25, 0.9f, 0.1f, 0.5f, 5, 1, 1, 0.75f, 0.1f, 0.5f); // Another ranged weapon
         inventory.EquipWeapon(weapon1, owner);
         inventory.EquipWeapon(weapon2, owner);
 

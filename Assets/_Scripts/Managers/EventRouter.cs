@@ -461,4 +461,68 @@ public static class EventRouter
             isProcessingTracerDeactivationQueue = false;
         }
     }
+
+    public static UnityEvent<GameObject, Item> OnHoverableItemTooltipEnter = new UnityEvent<GameObject, Item>();
+    public static UnityEvent<GameObject, Item> ROnHoverableItemTooltipEnter = new UnityEvent<GameObject, Item>();
+    private static readonly Queue<UnityEvent<GameObject, Item>> HoverableItemTooltipEnterEventQueue = new Queue<UnityEvent<GameObject, Item>>();
+    private static bool isProcessingHoverableItemTooltipEnterQueue = false;
+    public static UnityEvent<GameObject> OnHoverableItemTooltipExit = new UnityEvent<GameObject>();
+    public static UnityEvent<GameObject> ROnHoverableItemTooltipExit = new UnityEvent<GameObject>();
+    private static readonly Queue<UnityEvent<GameObject>> HoverableItemTooltipExitEventQueue = new Queue<UnityEvent<GameObject>>();
+    private static bool isProcessingHoverableItemTooltipExitQueue = false;
+
+    public static void RegisterWithHub(HoverableItemTooltip hoverableItemTooltip)
+    {
+        if (hoverableItemTooltip == null)
+        {
+            return;
+        }
+        OnHoverableItemTooltipEnter.RemoveListener(OnHoverableItemTooltipEnterHandler);
+        OnHoverableItemTooltipExit.RemoveListener(OnHoverableItemTooltipExitHandler);
+        OnHoverableItemTooltipEnter.AddListener(OnHoverableItemTooltipEnterHandler);
+        OnHoverableItemTooltipExit.AddListener(OnHoverableItemTooltipExitHandler);
+    }
+
+    public static void UnregisterFromHub(HoverableItemTooltip hoverableItemTooltip)
+    {
+        if (hoverableItemTooltip == null)
+        {
+            return;
+        }
+        OnHoverableItemTooltipEnter.RemoveListener(OnHoverableItemTooltipEnterHandler);
+        OnHoverableItemTooltipExit.RemoveListener(OnHoverableItemTooltipExitHandler);
+    }
+
+    private static void OnHoverableItemTooltipEnterHandler(GameObject go, Item item)
+    {
+        // Debug.Log($"OnHoverableItemTooltipEnterHandler invoked for GameObject: {go.name}, Item: {item?.Name}");
+        HoverableItemTooltipEnterEventQueue.Enqueue(ROnHoverableItemTooltipEnter);
+
+        if (!isProcessingHoverableItemTooltipEnterQueue)
+        {
+            isProcessingHoverableItemTooltipEnterQueue = true;
+            while (HoverableItemTooltipEnterEventQueue.Count > 0)
+            {
+                UnityEvent<GameObject, Item> evt = HoverableItemTooltipEnterEventQueue.Dequeue();
+                evt?.Invoke(go, item);
+            }
+            isProcessingHoverableItemTooltipEnterQueue = false;
+        }
+    }
+    
+    private static void OnHoverableItemTooltipExitHandler(GameObject go)
+    {
+        HoverableItemTooltipExitEventQueue.Enqueue(ROnHoverableItemTooltipExit);
+
+        if (!isProcessingHoverableItemTooltipExitQueue)
+        {
+            isProcessingHoverableItemTooltipExitQueue = true;
+            while (HoverableItemTooltipExitEventQueue.Count > 0)
+            {
+                UnityEvent<GameObject> evt = HoverableItemTooltipExitEventQueue.Dequeue();
+                evt?.Invoke(go);
+            }
+            isProcessingHoverableItemTooltipExitQueue = false;
+        }
+    }
 }

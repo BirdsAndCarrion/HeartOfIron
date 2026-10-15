@@ -1,4 +1,5 @@
 using UnityEngine;
+using HeartOfIron.Structs;
 
 public class Cover : MonoBehaviour, IDamageable
 {
@@ -21,12 +22,12 @@ public class Cover : MonoBehaviour, IDamageable
         }
     }
 
-    public float TakeDamage(float damageAmount, int location = 1)
+    public DamageReport TakeDamage(float damageAmount, int location = 1)
     {
         health -= damageAmount;
         if (health < 0f) health = 0f;
         // TODO: Implement any additional effects or logic when the cover takes damage
-        return damageAmount;
+        return new DamageReport(damageAmount, 0f);
     }
 
     public void Repair(float repairAmount, int location = 1)

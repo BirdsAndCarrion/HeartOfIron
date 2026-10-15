@@ -75,11 +75,13 @@ public class MechInfoDisplayInternal : MonoBehaviour
                     _mechWeapon2Text.text = mech.Inventory.Weapons[i] != null ? mech.Inventory.Weapons[i].Name : "None";
                 }
             }
+
+            EnergyShield energyShield = mech.Inventory.EnergyShield;
             // Get the energy shield values of the mech
-            if (mech.Inventory.EnergyShield != null)
+            if (energyShield != null)
             {
-                _mechEnergyShieldText.text = mech.Inventory.EnergyShield.Name;
-                _mechEnergyShieldBar.Setup(mech.Inventory.EnergyShield.CurrentCapacity, mech.Inventory.EnergyShield.MaxCapacity);
+                _mechEnergyShieldText.text = energyShield.Name;
+                _mechEnergyShieldBar.Setup(energyShield.CurrentCapacity, energyShield.MaxCapacity);
             }
             else
             {
@@ -95,17 +97,18 @@ public class MechInfoDisplayInternal : MonoBehaviour
             _mechLeftLegHealthBar.Setup(mech.Health[(int)BodyPart.LeftLeg], mech.MaxHealth[(int)BodyPart.LeftLeg]);
             _mechRightLegHealthBar.Setup(mech.Health[(int)BodyPart.RightLeg], mech.MaxHealth[(int)BodyPart.RightLeg]);
 
+            Armor[] armors = mech.Inventory.Armors;
             // Get the armor values of the mech
-            _mechHeadArmorText.text = mech.Inventory.Armors[(int)ArmorType.Head] != null ? mech.Inventory.Armors[(int)ArmorType.Head].Name : "None";
-            _mechHeadArmorBar.Setup(mech.Inventory.Armors[(int)ArmorType.Head] != null ? mech.Inventory.Armors[(int)ArmorType.Head].GetDurability() : 0, mech.Inventory.Armors[(int)ArmorType.Head] != null ? mech.Inventory.Armors[(int)ArmorType.Head].MaxDurability : 1);
-            _mechTorsoArmorText.text = mech.Inventory.Armors[(int)ArmorType.Torso] != null ? mech.Inventory.Armors[(int)ArmorType.Torso].Name : "None";
-            _mechTorsoArmorBar.Setup(mech.Inventory.Armors[(int)ArmorType.Torso] != null ? mech.Inventory.Armors[(int)ArmorType.Torso].GetDurability() : 0, mech.Inventory.Armors[(int)ArmorType.Torso] != null ? mech.Inventory.Armors[(int)ArmorType.Torso].MaxDurability : 1);
-            _mechLeftArmArmorText.text = mech.Inventory.Armors[(int)ArmorType.Arms] != null ? mech.Inventory.Armors[(int)ArmorType.Arms].Name : "None";
-            _mechLeftArmArmorBar.Setup(mech.Inventory.Armors[(int)ArmorType.Arms] != null ? mech.Inventory.Armors[(int)ArmorType.Arms].GetDurability(0) : 0, mech.Inventory.Armors[(int)ArmorType.Arms] != null ? mech.Inventory.Armors[(int)ArmorType.Arms].MaxDurability : 1);
-            _mechRightArmArmorBar.Setup(mech.Inventory.Armors[(int)ArmorType.Arms] != null ? mech.Inventory.Armors[(int)ArmorType.Arms].GetDurability(1) : 0, mech.Inventory.Armors[(int)ArmorType.Arms] != null ? mech.Inventory.Armors[(int)ArmorType.Arms].MaxDurability : 1);
-            _mechLeftLegArmorText.text = mech.Inventory.Armors[(int)ArmorType.Legs] != null ? mech.Inventory.Armors[(int)ArmorType.Legs].Name : "None";
-            _mechLeftLegArmorBar.Setup(mech.Inventory.Armors[(int)ArmorType.Legs] != null ? mech.Inventory.Armors[(int)ArmorType.Legs].GetDurability(0) : 0, mech.Inventory.Armors[(int)ArmorType.Legs] != null ? mech.Inventory.Armors[(int)ArmorType.Legs].MaxDurability : 1);
-            _mechRightLegArmorBar.Setup(mech.Inventory.Armors[(int)ArmorType.Legs] != null ? mech.Inventory.Armors[(int)ArmorType.Legs].GetDurability(1) : 0, mech.Inventory.Armors[(int)ArmorType.Legs] != null ? mech.Inventory.Armors[(int)ArmorType.Legs].MaxDurability : 1);
+            _mechHeadArmorText.text = armors[(int)ArmorType.Head] != null ? armors[(int)ArmorType.Head].Name : "None";
+            _mechHeadArmorBar.Setup(armors[(int)ArmorType.Head] != null ? armors[(int)ArmorType.Head].GetDurability() : 0, armors[(int)ArmorType.Head] != null ? armors[(int)ArmorType.Head].MaxDurability : 1);
+            _mechTorsoArmorText.text = armors[(int)ArmorType.Torso] != null ? armors[(int)ArmorType.Torso].Name : "None";
+            _mechTorsoArmorBar.Setup(armors[(int)ArmorType.Torso] != null ? armors[(int)ArmorType.Torso].GetDurability() : 0, armors[(int)ArmorType.Torso] != null ? armors[(int)ArmorType.Torso].MaxDurability : 1);
+            _mechLeftArmArmorText.text = armors[(int)ArmorType.Arms] != null ? armors[(int)ArmorType.Arms].Name : "None";
+            _mechLeftArmArmorBar.Setup(armors[(int)ArmorType.Arms] != null ? armors[(int)ArmorType.Arms].GetDurability(0) : 0, armors[(int)ArmorType.Arms] != null ? armors[(int)ArmorType.Arms].MaxDurability : 1);
+            _mechRightArmArmorBar.Setup(armors[(int)ArmorType.Arms] != null ? armors[(int)ArmorType.Arms].GetDurability(1) : 0, armors[(int)ArmorType.Arms] != null ? armors[(int)ArmorType.Arms].MaxDurability : 1);
+            _mechLeftLegArmorText.text = armors[(int)ArmorType.Legs] != null ? armors[(int)ArmorType.Legs].Name : "None";
+            _mechLeftLegArmorBar.Setup(armors[(int)ArmorType.Legs] != null ? armors[(int)ArmorType.Legs].GetDurability(0) : 0, armors[(int)ArmorType.Legs] != null ? armors[(int)ArmorType.Legs].MaxDurability : 1);
+            _mechRightLegArmorBar.Setup(armors[(int)ArmorType.Legs] != null ? armors[(int)ArmorType.Legs].GetDurability(1) : 0, armors[(int)ArmorType.Legs] != null ? armors[(int)ArmorType.Legs].MaxDurability : 1);
         }
     }
 }

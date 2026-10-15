@@ -1441,6 +1441,8 @@ MonoBehaviour:
     _health: []
     _maxHealth: []
     _maxSpeed: 0
+    _visionRange: 0
+    _visionAngle: 0
     _inventory:
       _weapons:
       - rid: -2
@@ -1478,6 +1480,7 @@ MonoBehaviour:
   _pilotColorButton: {fileID: 1073681446}
   _colorPickerPanel: {fileID: 702868670}
   _runtimeColorPicker: {fileID: 702868672}
+  _hoverableItemTooltip: {fileID: 1898828425996623091, guid: ff97506df8e2def46b28aa2b4de7e000, type: 3}
   references:
     version: 2
     RefIds:
@@ -7415,7 +7418,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0.000051080966, y: 0.00056164607}
+  m_AnchoredPosition: {x: 0.0009793141, y: 0.00056164607}
   m_SizeDelta: {x: -256.3333, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1437086376
@@ -7525,7 +7528,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 841783290}
   m_Direction: 0
   m_Value: 0
-  m_Size: 1
+  m_Size: 0.99952364
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:

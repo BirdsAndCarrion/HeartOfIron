@@ -14,9 +14,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::NoiseParams
   TerrainType: 0
   Scale: 100
-  Frequency: 1
+  Frequency: 0.3
   Octaves: 4
-  Lacunarity: 1
-  Persistence: 0.25
+  Lacunarity: 2
+  Persistence: 0.5
+  MinHeight: 0.508
   Amplitude: 1
-  CoverDensity: 0.5
+  CoverDensity: 0.332
+  CoverObjects:
+  - CoverObject: {fileID: 6952167640058311543, guid: 798355d8bfcc15046b85005ce45a82cc, type: 3}
+    DistanceNeeded: 1
+    SiblingChance: 0.7
+    ClusteringRadius: 10
+  BuildingObjects:
+  - BuildingObject: {fileID: 5537939609791139315, guid: c31fbb21af6619a4eafd3b6baba0f591, type: 3}
+    DistanceNeeded: 7
+    FlatteningRadius: 3

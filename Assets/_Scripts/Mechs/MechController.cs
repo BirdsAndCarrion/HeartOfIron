@@ -3,8 +3,10 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.AI;
 using HeartOfIron.Enums;
+using HeartOfIron.Structs;
 
-[RequireComponent(typeof(NavMeshAgent))]
+[RequireComponent(typeof(NavMeshAgent)), RequireComponent(typeof(EquippingModule))
+, RequireComponent(typeof(AnimatorController)), RequireComponent(typeof(ShaderParamController))]
 public class MechController : MonoBehaviour, ISelectable, IDamageable
 {
     [SerializeField] private float ACTION_MARKER_REACHED_THRESHOLD = 1.5f;
@@ -26,6 +28,8 @@ public class MechController : MonoBehaviour, ISelectable, IDamageable
     public OverwatchScript OverwatchScript => _overwatchScript;
     private ShootProjectile[] _shootProjectile;
     public ShootProjectile[] ShootProjectiles => _shootProjectile;
+    [SerializeField] private EquippingModule _equippingModule;
+    public EquippingModule EquippingModule => _equippingModule;
     public Transform Target;
     public Transform Head;
     public Transform Torso;
@@ -35,6 +39,8 @@ public class MechController : MonoBehaviour, ISelectable, IDamageable
     public Transform RightLeg;
     public List<Transform> Limbs => new List<Transform> { Torso, Head, LeftLeg, RightLeg, LeftArm, RightArm };
     public Animator Animator;
+    private AnimatorController _animatorController;
+    private ShaderParamController _shaderParamController;
 
     void Awake()
     {
@@ -53,7 +59,33 @@ public class MechController : MonoBehaviour, ISelectable, IDamageable
                 _navMeshAgent.ResetPath();
             }
         }
+        _equippingModule = GetComponent<EquippingModule>();
+        if (_equippingModule == null)
+        {
+            Debug.LogError("EquippingModule component is missing from the MechController.");
+        } else
+        {
+            Debug.Log($"EquippingModule found: {_equippingModule.name}");
+        }
         _actionMarkers = new List<ActionMarker>();
+        _animatorController = GetComponent<AnimatorController>();
+        if (_animatorController == null)
+        {
+            Debug.LogError("AnimatorController component is missing from the MechController.");
+        } else
+        {
+            Debug.Log($"AnimatorController found: {_animatorController.name}");
+        }
+        _shaderParamController = GetComponent<ShaderParamController>();
+        if (_shaderParamController == null)
+        {
+            Debug.LogError("ShaderParamController component is missing from the MechController.");
+        } else
+        {
+            Debug.Log($"ShaderParamController found: {_shaderParamController.name}");
+        }
+        _animatorController.Init(Animator);
+        _shaderParamController.Init(gameObject.GetComponent<Renderer>().material);
     }
 
     void Update()
@@ -204,54 +236,47 @@ public class MechController : MonoBehaviour, ISelectable, IDamageable
         GameObject visionChild = new GameObject("MechVision");
         visionChild.transform.parent = gameObject.transform;
         MechVision mechVision = visionChild.AddComponent<MechVision>();
-        mechVision.SetVisionParameters(_mech.VisionRange, _mech.VisionAngle);
+        mechVision.Init(_mech.VisionRange, _mech.VisionAngle);
         if (Animator != null)
         {
             Animator.SetBool("IsMoving", false);
-            // Set if arms are active based on health values > 0
-            if (_mech.Health[(int)BodyPart.LeftArm] > 0)
-            {
-                Animator.SetBool("LeftArmActive", true);
-                Animator.SetFloat("LeftArmBlend", 0f);
-            }
-            if (_mech.Health[(int)BodyPart.RightArm] > 0)
-            {
-                Animator.SetBool("RightArmActive", true);
-                Animator.SetFloat("RightArmBlend", 0f);
-            }
             // Set arm blend values based on equipped items and health (no item or 0 health = 0 blend, one handed = 0.5 blend, two handed = 1 blend)
             // If weapon is melee, toggle melee for each arm accordingly
             Weapon rightWeapon = _mech.Inventory.Weapons[(int)Hand.Right];
             Weapon leftWeapon = _mech.Inventory.Weapons[(int)Hand.Left];
             if (rightWeapon == null)
             {
-                Animator.SetFloat("RightArmBlend", 0f);
+                _animatorController.SetOneHandedRight(true, false);
             } else if (rightWeapon.SlotsRequired == 1)
             {
-                Animator.SetFloat("RightArmBlend", 0.5f);
                 if (rightWeapon.IsMelee)
                 {
-                    Animator.SetBool("MeleeR", true);
+                    _animatorController.SetOneHandedRight(true, true, true);
+                } else
+                {
+                    _animatorController.SetOneHandedRight(true, true, false);
                 }
             } else if (rightWeapon.SlotsRequired == 2)
             {
-                Animator.SetFloat("RightArmBlend", 1f);
-                Animator.SetFloat("LeftArmBlend", 1f);
                 if (rightWeapon.IsMelee)
                 {
-                    Animator.SetBool("MeleeR", true);
-                    Animator.SetBool("MeleeL", true);
+                    _animatorController.SetTwoHanded(true, true);
+                } else
+                {
+                    _animatorController.SetTwoHanded(true, false);
                 }
             }
             if (leftWeapon == null)
             {
-                Animator.SetFloat("LeftArmBlend", 0f);
+                _animatorController.SetOneHandedLeft(true, false);
             } else if (leftWeapon.SlotsRequired == 1)
             {
-                Animator.SetFloat("LeftArmBlend", 0.5f);
                 if (leftWeapon.IsMelee)
                 {
-                    Animator.SetBool("MeleeL", true);
+                    _animatorController.SetOneHandedLeft(true, true, true);
+                } else
+                {
+                    _animatorController.SetOneHandedLeft(true, true, false);
                 }
             }
         }
@@ -282,13 +307,13 @@ public class MechController : MonoBehaviour, ISelectable, IDamageable
                 case MechState.Idle:
                     break;
                 case MechState.Moving:
-                    Animator.SetBool("IsMoving", false); // Ensure the moving animation is turned off when leaving the moving state
+                    _animatorController.SetIsMoving(false); // Ensure the moving animation is turned off when leaving the moving state
                     break;
                 case MechState.Brawling:
                     _currentSpeed = _currentSpeed * 2;
                     break;
                 case MechState.Charging:
-                    Animator.SetBool("IsMoving", false); // Ensure the moving animation is turned off when leaving the charging state
+                    _animatorController.SetIsMoving(false); // Ensure the moving animation is turned off when leaving the charging state
                     break;
                 case MechState.Overwatch:
                     _overwatchScript?.DeactivateOverwatch(); // Deactivate overwatch when leaving the overwatch state
@@ -309,14 +334,14 @@ public class MechController : MonoBehaviour, ISelectable, IDamageable
                     break;
                 case MechState.Moving:
                     _moveTimer = MOVE_TIMER_RESET_VALUE; // Reset the move timer when entering the moving state
-                    Animator.SetBool("IsMoving", true);
+                    _animatorController.SetIsMoving(true);
                     break;
                 case MechState.Brawling:
                     _currentSpeed *= 0.5f;
                     break;
                 case MechState.Charging:
                     _moveTimer = MOVE_TIMER_RESET_VALUE; // Reset the move timer when entering the charging state
-                    Animator.SetBool("IsMoving", true); // Ensure the moving animation is turned on when charging
+                    _animatorController.SetIsMoving(true); // Ensure the moving animation is turned on when charging
                     break;
                 case MechState.Overwatch:
                     _overwatchScript?.ActivateOverwatch(); // Activate overwatch when entering the overwatch state
@@ -325,7 +350,7 @@ public class MechController : MonoBehaviour, ISelectable, IDamageable
                     break;
                 case MechState.Dead:
                     _navMeshAgent.ResetPath(); // Stop movement when the mech is dead
-                    Animator.SetBool("IsMoving", false); // Ensure the moving animation is turned off when dead
+                    _animatorController.SetIsMoving(false); // Ensure the moving animation is turned off when dead
                     break;
                 default:
                     Debug.LogWarning($"Unhandled MechState: {newState}");
@@ -369,7 +394,7 @@ public class MechController : MonoBehaviour, ISelectable, IDamageable
     public void StopMovement()
     {
         _navMeshAgent.ResetPath();
-        Animator.SetBool("IsMoving", false); // Ensure the moving animation is turned off when stopping movement
+        _animatorController.SetIsMoving(false); // Ensure the moving animation is turned off when stopping movement
     }
 
     public void AddActionMarker(ActionMarker actionMarker)
@@ -409,15 +434,16 @@ public class MechController : MonoBehaviour, ISelectable, IDamageable
         }
     }
 
-    public float TakeDamage(float damageAmount, int location)
+    public DamageReport TakeDamage(float damageAmount, int location)
     {
         if (location < 0 || location >= _mech.Health.Length)
         {
             Debug.LogError($"Invalid location index {location} for mech {_mech.Name}. Damage not applied.");
-            return 0f;
+            return new DamageReport(0f, 0f);
         }
-        float overflowDamage = _mech.TakeDamage(damageAmount, location);
+        DamageReport flag = _mech.TakeDamage(damageAmount, location);
         // TODO: Implement logic for applying shader effects or visual feedback for damage taken
+        _shaderParamController.TakeDamage(flag.flagIndicator);
         if (_mech.Health[location] <= 0 && (location == (int)BodyPart.Head || location == (int)BodyPart.Torso))
         {
             UpdateMechState(MechState.Dead);
@@ -430,12 +456,12 @@ public class MechController : MonoBehaviour, ISelectable, IDamageable
             if (location == (int)BodyPart.LeftArm)
             {
                 // TODO: Handle left arm weapon loss
-                Animator.SetBool("LeftArmActive", false);
+                _animatorController.SetOneHandedLeft(false);
             }
             else if (location == (int)BodyPart.RightArm)
             {
                 // TODO: Handle right arm weapon loss
-                Animator.SetBool("RightArmActive", false);
+                _animatorController.SetOneHandedRight(false);
             }
         }
         else if (_mech.Health[location] <= 0 && (location == (int)BodyPart.LeftLeg || location == (int)BodyPart.RightLeg))
@@ -444,7 +470,7 @@ public class MechController : MonoBehaviour, ISelectable, IDamageable
             _currentSpeed *= 0.51f;
         }
         Debug.Log($"{_mech.Name} took {damageAmount} damage at location {location}. Remaining health: {_mech.Health[location]}");
-        return _mech.Health[location]; // Return the remaining health at the specified location
+        return flag; // Return the DamageReport for the specified location
     }
 
     public void Repair(float repairAmount, int location)
@@ -513,5 +539,10 @@ public class MechController : MonoBehaviour, ISelectable, IDamageable
     public bool IsLowHealth()
     {
         return _mech.IsLowHealth();
+    }
+
+    public Inventory GetInventory()
+    {
+        return _mech.Inventory;
     }
 }

@@ -8,6 +8,7 @@ public class EquippingModule : MonoBehaviour
     [SerializeField] private Transform shoulderLocation;
     [SerializeField] private Transform handLocationR;
     [SerializeField] private Transform handLocationL;
+    [SerializeField] private Transform gripLocation;
 
     [SerializeField] private Rig RArmRig;
     [SerializeField] private TwoBoneIKConstraint RArmIK;
@@ -22,6 +23,7 @@ public class EquippingModule : MonoBehaviour
     [SerializeField] private MultiParentConstraint LHandAimConstraint;
 
     // TODO: Equipping melee weapons?
+    // TODO: Getting different hand locations and shoulder locations for different mech types
 
     public void EquipOneHandedItem(GameObject item, bool isRightHand)
     {
@@ -67,7 +69,7 @@ public class EquippingModule : MonoBehaviour
         LHandAimRig.weight = 1f;
     }
 
-    public void EquipTwoHandedItem(GameObject item)
+    public void EquipTwoHandedItem(GameObject item, bool isMelee)
     {
         foreach (Transform child in handLocationR)
         {
@@ -78,7 +80,15 @@ public class EquippingModule : MonoBehaviour
             Destroy(child.gameObject);
         }
 
-        item.transform.SetParent(shoulderLocation);
+        if (isMelee)
+        {
+            item.transform.SetParent(gripLocation);
+        }
+        else
+        {
+            item.transform.SetParent(shoulderLocation);
+        }
+
         item.transform.localPosition = Vector3.zero;
         item.transform.localRotation = Quaternion.identity;
 

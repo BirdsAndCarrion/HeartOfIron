@@ -121,7 +121,7 @@ public class GameManager : MonoBehaviour
         defaultPilot.AssignedMech = defaultMech; // Assign the default mech to the default pilot
 
         // Create a default weapon and add it to the player's inventory
-        Weapon defaultWeapon = new Weapon("Default Weapon", Weight.Light, 100, 30, 10, 30, 1f, 0.25f, 0.5f, 5, 1, 1);
+        Weapon defaultWeapon = new Weapon(WeaponName.LightPistol, "Default Weapon", Weight.Light, 100, 30, 10, 30, 1f, 0.25f, 0.5f, 5, 1, 1);
         _playerInventory.Add(defaultWeapon);
         defaultMech.EquipWeapon(defaultWeapon); // Equip the default weapon to the default mech
         defaultWeapon.SetOwner(defaultMech); // Set the owner of the default weapon to the default mech

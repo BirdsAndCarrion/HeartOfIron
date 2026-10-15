@@ -15,20 +15,29 @@ public class Inventory
     public Inventory()
     {
         _weapons = new Weapon[2];
-        _armors = new Armor[4]; // Assuming 4 armor slots for head, torso, arms, and legs
+        _armors = new Armor[4]; // Initialize armors array with 4 slots
         _energyShield = null; // Initialize energy shield to null
     }
 
-    public Inventory(Weapon weapon1, Weapon weapon2, Armor headArmor, Armor torsoArmor, Armor armArmor, Armor legArmor, EnergyShield energyShield)
+    public Inventory(Weapon weapon1, Weapon weapon2, Armor[] armors, EnergyShield energyShield)
+    {
+        _weapons = new Weapon[2];
+        _weapons[(int)Hand.Right] = weapon1;
+        _weapons[(int)Hand.Left] = weapon2;
+        _armors = armors;
+        _energyShield = energyShield;
+    }
+
+    public Inventory(Weapon weapon1, Weapon weapon2, Armor armor1, Armor armor2, Armor armor3, Armor armor4, EnergyShield energyShield)
     {
         _weapons = new Weapon[2];
         _weapons[(int)Hand.Right] = weapon1;
         _weapons[(int)Hand.Left] = weapon2;
         _armors = new Armor[4];
-        _armors[(int)ArmorType.Head] = headArmor;
-        _armors[(int)ArmorType.Torso] = torsoArmor;
-        _armors[(int)ArmorType.Arms] = armArmor;
-        _armors[(int)ArmorType.Legs] = legArmor;
+        _armors[(int)ArmorType.Head] = armor1;
+        _armors[(int)ArmorType.Torso] = armor2;
+        _armors[(int)ArmorType.Arms] = armor3;
+        _armors[(int)ArmorType.Legs] = armor4;
         _energyShield = energyShield;
     }
 
@@ -54,9 +63,9 @@ public class Inventory
                 }
             }
         }
-        else if (item is EnergyShield shield)
+        else if (item is EnergyShield energyShield)
         {
-            if (_energyShield != null && _energyShield.Id == shield.Id)
+            if (_energyShield != null && _energyShield.Id == energyShield.Id)
             {
                 return true;
             }
@@ -124,80 +133,113 @@ public class Inventory
 
     public bool EquipArmor(Armor armor, Mech owner)
     {
-        if (!CanEquipItem(armor))
+        if (!CanEquipItem(armor) && !CanEquipArmor(armor))
         {
             return false;
         }
-        int armorIndex = (int)armor.ArmorType;
-        if (armorIndex >= 0 && armorIndex < _armors.Length)
+        for (int i = 0; i < _armors.Length; i++)
         {
-            if (_armors[armorIndex] != null)
+            if (_armors[i] == null)
             {
-                Debug.LogWarning($"Cannot equip armor: Slot for {armor.ArmorType} is already occupied.");
-                return false;
+                _armors[i] = armor;
+                armor.SetOwner(owner); // Set the owner of the armor when equipped
+                return true;
             }
-            _armors[armorIndex] = armor;
-            armor.SetOwner(owner); // Set the owner of the armor when equipped
-            return true;
         }
-        else
+        Debug.LogWarning("Cannot equip armor: No available slots.");
+        return false;
+    }
+
+    private bool CanEquipArmor(Armor armor)
+    {
+        if (armor == null)
         {
-            Debug.LogWarning("Invalid armor type.");
+            Debug.LogWarning("Cannot check equip status for a null armor.");
             return false;
         }
+        if (_armors.Length == 0)
+        {
+            Debug.LogWarning("Cannot equip armor: No armor slots available.");
+            return false;
+        }
+        if (_energyShield != null && armor.Weight != _energyShield.Weight)
+        {
+            Debug.LogWarning("Cannot equip armor: Incompatible with the equipped energy shield.");
+            return false;
+        }
+        for (int i = 0; i < _armors.Length; i++)
+        {
+            if (_armors[i] == null)
+            {
+                return true; // There is at least one available slot
+            }
+        }
+        Debug.LogWarning("Cannot equip armor: All armor slots are occupied.");
+        return false;
     }
 
     public void UnequipArmor(Armor armor)
     {
-        int armorIndex = (int)armor.ArmorType;
-        if (armorIndex >= 0 && armorIndex < _armors.Length)
+        for (int i = 0; i < _armors.Length; i++)
         {
-            if (_armors[armorIndex] == armor)
+            if (_armors[i] == armor)
             {
-                _armors[armorIndex] = null;
-                armor.ClearOwner(); // Clear the owner of the armor when unequipped
-            }
-            else
-            {
-                Debug.LogWarning($"Armor of type {armor.ArmorType} is not currently equipped.");
+                _armors[i].ClearOwner(); // Clear the owner of the armor when unequipped
+                _armors[i] = null;
+                return;
             }
         }
-        else
-        {
-            Debug.LogWarning("Invalid armor type.");
-        }
+        Debug.LogWarning("Cannot unequip armor: The specified armor is not currently equipped.");
     } 
 
     public bool EquipEnergyShield(EnergyShield energyShield, Mech owner)
     {
-        if (!CanEquipItem(energyShield))
+        if (!CanEquipItem(energyShield) && !CanEquipEnergyShield(energyShield))
         {
+            return false;
+        }
+        if (_energyShield == null)
+        {
+            _energyShield = energyShield;
+            energyShield.SetOwner(owner); // Set the owner of the energy shield when equipped
+            return true;
+        }
+        Debug.LogWarning("Cannot equip energy shield: Slot is already occupied.");
+        return false;
+    }
+
+    private bool CanEquipEnergyShield(EnergyShield energyShield)
+    {
+        if (energyShield == null)
+        {
+            Debug.LogWarning("Cannot check equip status for a null energy shield.");
             return false;
         }
         if (_energyShield != null)
         {
-            Debug.LogWarning("Cannot equip energy shield: An energy shield is already equipped.");
+            Debug.LogWarning("Cannot equip energy shield: Slot is already occupied.");
             return false;
         }
-        _energyShield = energyShield;
-        energyShield.SetOwner(owner); // Set the owner of the energy shield when equipped
+        for (int i = 0; i < _armors.Length; i++)
+        {
+            if (_armors[i] != null && _armors[i].Weight != energyShield.Weight)
+            {
+                Debug.LogWarning("Cannot equip energy shield: Incompatible with the equipped armor.");
+                return false;
+            }
+        }
         return true;
     }
 
     public void UnequipEnergyShield(EnergyShield energyShield)
     {
-        if (_energyShield == null)
+        if (_energyShield == energyShield)
         {
-            Debug.LogWarning("Cannot unequip energy shield: No energy shield is currently equipped.");
+            _energyShield.ClearOwner(); // Clear the owner of the energy shield when unequipped
+            _energyShield = null;
             return;
         }
-        if (_energyShield != energyShield)
-        {
-            Debug.LogWarning("Cannot unequip energy shield: The specified energy shield is not currently equipped.");
-            return;
-        }
-        _energyShield.ClearOwner(); // Clear the owner of the energy shield when unequipped
-        _energyShield = null;
+        Debug.LogWarning("Cannot unequip energy shield: The specified energy shield is not currently equipped.");
     }
 
     public bool CanEquipItem(Item item)
@@ -275,21 +317,21 @@ public class Inventory
         {
             if (armor != null)
             {
-                info += $"- {armor.Name} ({armor.ArmorType})\n";
+                info += $"- {armor.Name}\n";
             }
             else
             {
                 info += "- Empty Slot\n";
             }
         }
-        info += "Energy Shield:\n";
+        info += "Energy Shields:\n";
         if (_energyShield != null)
         {
             info += $"- {_energyShield.Name}\n";
         }
         else
         {
-            info += "- None\n";
+            info += "- Empty Slot\n";
         }
         return info;
     }

@@ -149,6 +149,7 @@ GameObject:
   - component: {fileID: 6788838791978852740}
   - component: {fileID: 5804772290609567262}
   - component: {fileID: 5181838361612208497}
+  - component: {fileID: 3504960320762005822}
   m_Layer: 5
   m_Name: SelectionButtonPrefab
   m_TagString: Untagged
@@ -258,3 +259,15 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &3504960320762005822
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5006572380681960934}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: acad9154537d45745bfadb36f9f7227d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TestModule::HoverableItemTooltip

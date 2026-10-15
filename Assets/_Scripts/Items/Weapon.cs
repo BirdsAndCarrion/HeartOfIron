@@ -6,6 +6,8 @@ using HeartOfIron.Enums;
 public class Weapon : Item
 {
     [Header("Basic Weapon Stats")]
+    [SerializeField] private WeaponName _weaponName;
+    public WeaponName WeaponName => _weaponName;
     [SerializeField] private int _damage;
     public int Damage => _damage;
     [SerializeField] private int _meleeDamage;
@@ -37,9 +39,10 @@ public class Weapon : Item
     [SerializeField] private float cooldownTime;
     public float CooldownTime => cooldownTime;
 
-    public Weapon(string itemName, Weight weight, int cost, int damage, int meleeDamage, int maxAmmo, float reloadTime, float fireRate, float swingRate, int meleeRange, int numShots, int slotsRequired, float pointBlankAccuracy = 1.0f, float accuracyDropoff = 0.01f, float meleeAccuracy = 0.9f)
+    public Weapon(WeaponName weaponName, string itemName, Weight weight, int cost, int damage, int meleeDamage, int maxAmmo, float reloadTime, float fireRate, float swingRate, int meleeRange, int numShots, int slotsRequired, float pointBlankAccuracy = 1.0f, float accuracyDropoff = 0.01f, float meleeAccuracy = 0.9f)
         : base(itemName, weight, ItemType.Weapon, cost)
     {
+        _weaponName = weaponName;
         _damage = damage;
         _meleeDamage = meleeDamage;
         _maxAmmo = maxAmmo;
@@ -155,6 +158,6 @@ public class Weapon : Item
 
     public override Item Clone()
     {
-        return new Weapon(Name, Weight, Cost, _damage, _meleeDamage, _maxAmmo, _reloadTime, _fireRate, _swingRate, _meleeRange, _numShots, _slotsRequired, _pointBlankAccuracy, _accuracyDropoff, _meleeAccuracy);
+        return new Weapon(WeaponName, Name, Weight, Cost, _damage, _meleeDamage, _maxAmmo, _reloadTime, _fireRate, _swingRate, _meleeRange, _numShots, _slotsRequired, _pointBlankAccuracy, _accuracyDropoff, _meleeAccuracy);
     }
 }

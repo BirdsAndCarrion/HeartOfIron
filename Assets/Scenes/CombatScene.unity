@@ -777,6 +777,7 @@ MonoBehaviour:
   _mechPrefab: {fileID: 0}
   _mechPrefabWController: {fileID: 9125135968955309131, guid: 4861784234814f146839ad81a603302a, type: 3}
   MECH_SCALE: 1
+  _weaponPrefabsList: {fileID: 11400000, guid: 5186c49a4257acb4e8af206e551906ee, type: 2}
 --- !u!4 &150867695
 Transform:
   m_ObjectHideFlags: 0
@@ -1139,7 +1140,7 @@ MonoBehaviour:
   _movementSpeed: 50
   _rotationSpeed: 100
   _minCameraHeight: 5
-  _maxCameraHeight: 0
+  _maxCameraHeight: 117.194725
   _maxCameraHeightBuffer: 50
 --- !u!4 &296159569
 Transform:
@@ -5549,11 +5550,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TerrainGenerator
   _terrainType: 0
+  _debugMode: 0
   terrainSize: 1000
   scale: 100
   resolution: 513
   heightMultiplier: 100
-  _objectPrefab: {fileID: 0}
   _terrainGradient:
     serializedVersion: 2
     key0: {r: 1, g: 1, b: 1, a: 1}
@@ -5585,6 +5586,16 @@ MonoBehaviour:
     m_NumColorKeys: 2
     m_NumAlphaKeys: 2
   _terrain: {fileID: 1256946975}
+  _coverHeatmap:
+  - {fileID: 11400000, guid: 64371020765b26344a225bd87edc70f8, type: 2}
+  - {fileID: 11400000, guid: 2d77f7cc5230d074586aed654f3affa2, type: 2}
+  - {fileID: 11400000, guid: 3749f9c61e75e094493d0ccc8a1edc1f, type: 2}
+  - {fileID: 11400000, guid: e9f7e05cad6f1784ca044bfb0c5bb017, type: 2}
+  - {fileID: 11400000, guid: 1d5d9a24ed7eda546823045c9d6d4d37, type: 2}
+  - {fileID: 11400000, guid: 7684f72bb36a14742a892b6f7dcd3f56, type: 2}
+  MAX_COVER_OBJECTS: 100
+  CoverObjectParent: []
+  BuildingObjectParent: []
 --- !u!4 &1031407235
 Transform:
   m_ObjectHideFlags: 0

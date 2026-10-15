@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using TMPro;
 using HeartOfIron.Enums;
 using UnityEngine.UI;
+using System.Text;
 
 public class GarageUIManager : MonoBehaviour
 {
@@ -33,12 +34,25 @@ public class GarageUIManager : MonoBehaviour
     [SerializeField] private GameObject _pilotColorButton;
     [SerializeField] private GameObject _colorPickerPanel;
     [SerializeField] private RuntimeColorPicker _runtimeColorPicker;
+    [SerializeField] private GameObject _hoverableItemTooltip;
     private Item _selectedItem;
     private List<ItemType> _itemTypes = new List<ItemType> { ItemType.Weapon, ItemType.Armor, ItemType.EnergyShield };
+
+    void Awake()
+    {
+        EventRouter.ROnHoverableItemTooltipEnter.AddListener(OnHoverableItemTooltipEnter);
+        EventRouter.ROnHoverableItemTooltipExit.AddListener(OnHoverableItemTooltipExit);
+    }
 
     void Start()
     {
         ShowMechSelectionPanel();
+    }
+
+    void OnDestroy()
+    {
+        EventRouter.ROnHoverableItemTooltipEnter.RemoveListener(OnHoverableItemTooltipEnter);
+        EventRouter.ROnHoverableItemTooltipExit.RemoveListener(OnHoverableItemTooltipExit);
     }
 
     void ShowMechSelectionPanel()
@@ -136,6 +150,7 @@ public class GarageUIManager : MonoBehaviour
             }
             GameObject button = Instantiate(_mechSelectionButtonPrefab, _mechModOptionsPanel.transform);
             button.GetComponentInChildren<TextMeshProUGUI>().text = weapon.Name;
+            button.GetComponent<HoverableItemTooltip>().item = weapon;
             button.GetComponent<Button>().onClick.AddListener(() => OnItemSelected(weapon));
             if (_selectedMech.Inventory.HasItem(weapon))
             {
@@ -155,6 +170,7 @@ public class GarageUIManager : MonoBehaviour
             }
             GameObject button = Instantiate(_mechSelectionButtonPrefab, _mechModOptionsPanel.transform);
             button.GetComponentInChildren<TextMeshProUGUI>().text = armor.Name;
+            button.GetComponent<HoverableItemTooltip>().item = armor;
             button.GetComponent<Button>().onClick.AddListener(() => OnItemSelected(armor));
             if (_selectedMech.Inventory.HasItem(armor))
             {
@@ -174,6 +190,7 @@ public class GarageUIManager : MonoBehaviour
             }
             GameObject button = Instantiate(_mechSelectionButtonPrefab, _mechModOptionsPanel.transform);
             button.GetComponentInChildren<TextMeshProUGUI>().text = shield.Name;
+            button.GetComponent<HoverableItemTooltip>().item = shield;
             button.GetComponent<Button>().onClick.AddListener(() => OnItemSelected(shield));
             if (_selectedMech.Inventory.HasItem(shield))
             {
@@ -379,5 +396,137 @@ public class GarageUIManager : MonoBehaviour
     {
         _colorPickerPanel.SetActive(false);
         _runtimeColorPicker.ClearTargetMech();
+    }
+
+    private void OnHoverableItemTooltipEnter(GameObject go, Item item)
+    {
+        // Debug.Log($"OnHoverableItemTooltipEnter invoked for GameObject: {go.name}, Item: {item?.Name}");
+        // Create and display the tooltip for the hovered item to the right of the item
+        if (item == null)
+        {
+            return;
+        } else if (item is Weapon weapon)
+        {
+            // Display weapon tooltip for item and for all weapons in mechs inventory
+            GameObject weaponTooltip = CreateWeaponTooltip(weapon);
+            weaponTooltip.transform.SetParent(go.transform, false);
+            weaponTooltip.transform.localPosition += new Vector3(go.transform.localScale.x + 0.1f, 0, 0);
+            Weapon[] weaponsInInventory = _selectedMech.Inventory.Weapons;
+            for (int i = 0; i < weaponsInInventory.Length; i++)
+            {
+                Weapon w = weaponsInInventory[i];
+                if (w == null) continue;
+                if (weapon == w) continue;
+                // Display tooltip for each weapon in inventory
+                GameObject weaponListtooltip = CreateWeaponTooltip(w);
+                // Position and show the tooltip as needed
+                weaponListtooltip.transform.SetParent(go.transform, false);
+                weaponListtooltip.transform.localPosition += new Vector3((go.transform.localScale.x + 0.1f) * (i + 1), 0, 0);
+            }
+            
+        }
+        else if (item is Armor armor)
+        {
+            // Display armor tooltip for item and equivalent armor in mechs inventory
+            GameObject armorTooltip = CreateArmorTooltip(armor);
+            armorTooltip.transform.SetParent(go.transform, false);
+            armorTooltip.transform.localPosition += new Vector3(go.transform.localScale.x + 0.1f, 0, 0);
+            Armor armorInInventory = _selectedMech.Inventory.Armors[(int)armor.ArmorType];
+            if (armorInInventory == null) return;
+            if (armorInInventory == armor) return;
+            GameObject armorInInventoryTooltip = CreateArmorTooltip(armorInInventory);
+            armorInInventoryTooltip.transform.SetParent(go.transform, false);
+            armorInInventoryTooltip.transform.localPosition += new Vector3((go.transform.localScale.x + 0.1f) * 2, 0, 0);
+            
+        }
+        else if (item is EnergyShield shield)
+        {
+            // Display energy shield tooltip for item and equivalent energy shield in mechs inventory
+            GameObject shieldTooltip = CreateEnergyShieldTooltip(shield);
+            shieldTooltip.transform.SetParent(go.transform, false);
+            shieldTooltip.transform.localPosition += new Vector3(go.transform.localScale.x + 0.1f, 0, 0);
+            EnergyShield shieldInInventory = _selectedMech.Inventory.EnergyShield;
+            if (shieldInInventory == null) return;
+            if (shieldInInventory == shield) return;
+            GameObject shieldInInventoryTooltip = CreateEnergyShieldTooltip(shieldInInventory);
+            shieldInInventoryTooltip.transform.SetParent(go.transform, false);
+            shieldInInventoryTooltip.transform.localPosition += new Vector3((go.transform.localScale.x + 0.1f) * 2, 0, 0);
+            
+        }
+
+    }
+
+    private GameObject CreateWeaponTooltip(Weapon weapon)
+    {
+        // Instantiate and configure the weapon tooltip GameObject
+        GameObject tooltip = Instantiate(_hoverableItemTooltip);
+        tooltip.name = "WeaponTooltip";
+        // Add components and set up the tooltip as needed
+        StringBuilder sb = new StringBuilder();
+        sb.AppendLine(weapon.WeaponName.ToString());
+        sb.Append("Weight: ");
+        sb.AppendLine(weapon.Weight.ToString());
+        sb.Append("Slots: ");
+        sb.AppendLine(weapon.SlotsRequired.ToString());
+        sb.AppendLine();
+        if (!weapon.IsMelee)
+        {
+            sb.Append("Damage: ");
+            sb.AppendLine(weapon.Damage.ToString());
+            sb.Append("Ammo: ");
+            sb.AppendLine(weapon.MaxAmmo.ToString());
+            sb.Append("Fire Rate: ");
+            sb.AppendLine(weapon.FireRate.ToString());
+            sb.Append("Reload: ");
+            sb.AppendLine(weapon.ReloadTime.ToString());
+            sb.Append("Number of Shots: ");
+            sb.AppendLine(weapon.NumShots.ToString());
+            sb.Append("Point blank accuracy: ");
+            sb.AppendLine(weapon.PointBlankAccuracy.ToString());
+            sb.Append("Accuracy Dropoff: ");
+            sb.AppendLine(weapon.AccuracyDropoff.ToString());
+            sb.AppendLine();
+        }
+        sb.Append("Melee Damage: ");
+        sb.AppendLine(weapon.MeleeDamage.ToString());
+        sb.Append("MeleeRange: ");
+        sb.AppendLine(weapon.MeleeRange.ToString());
+        sb.Append("Melee Accuracy: ");
+        sb.AppendLine(weapon.MeleeAccuracy.ToString());
+        sb.Append("Swing Rate: ");
+        sb.AppendLine(weapon.SwingRate.ToString());
+        TooltipScreenSpaceUI tooltipUI = tooltip.GetComponent<TooltipScreenSpaceUI>();
+        if (tooltipUI == null)
+            tooltipUI = tooltip.AddComponent<TooltipScreenSpaceUI>();
+        tooltipUI.DisplayTooltip(sb);
+        return tooltip;
+    }
+
+    private GameObject CreateArmorTooltip(Armor armor)
+    {
+        // Instantiate and configure the armor tooltip GameObject
+        GameObject tooltip = Instantiate(_hoverableItemTooltip);
+        tooltip.name = "ArmorTooltip";
+        // Add components and set up the tooltip as needed
+        return tooltip;
+    }
+
+    private GameObject CreateEnergyShieldTooltip(EnergyShield shield)
+    {
+        // Instantiate and configure the energy shield tooltip GameObject
+        GameObject tooltip = Instantiate(_hoverableItemTooltip);
+        tooltip.name = "EnergyShieldTooltip";
+        // Add components and set up the tooltip as needed
+        return tooltip;
+    }
+
+    private void OnHoverableItemTooltipExit(GameObject go)
+    {
+        // Handle tooltip exit event
+        foreach (Transform child in go.transform)
+        {
+            if (child.gameObject.name.EndsWith("Tooltip"))
+                GameObject.Destroy(child.gameObject);
+        }
     }
 }
