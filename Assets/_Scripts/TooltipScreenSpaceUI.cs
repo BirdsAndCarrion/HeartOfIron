@@ -30,10 +30,20 @@ public class TooltipScreenSpaceUI : MonoBehaviour
 
     private void SetText(string text)
     {
+        if (string.IsNullOrEmpty(text))
+        {
+            Debug.LogWarning("Tooltip text is null or empty.");
+            backgroundRectTransform.sizeDelta = Vector2.zero;
+            return;
+        }
+        gameObject.SetActive(true);
+        Debug.Log($"Setting tooltip text: {text}");
         tooltipText.SetText(text);
         tooltipText.ForceMeshUpdate();
-        Vector2 textSize = tooltipText.GetRenderedValues(false);
+        Vector2 textSize = tooltipText.GetPreferredValues(text);
+        Debug.Log($"Text size: {textSize}");
         Vector2 backgroundSize = new Vector2(textSize.x + PADDING * 2, textSize.y + PADDING * 2);
+        Debug.Log($"Background size: {backgroundSize}");
         backgroundRectTransform.sizeDelta = backgroundSize;
     }
 }

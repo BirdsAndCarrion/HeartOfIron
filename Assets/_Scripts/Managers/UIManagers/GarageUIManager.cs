@@ -410,7 +410,7 @@ public class GarageUIManager : MonoBehaviour
             // Display weapon tooltip for item and for all weapons in mechs inventory
             GameObject weaponTooltip = CreateWeaponTooltip(weapon);
             weaponTooltip.transform.SetParent(go.transform, false);
-            weaponTooltip.transform.localPosition += new Vector3(go.transform.localScale.x + 0.1f, 0, 0);
+            weaponTooltip.transform.localPosition += new Vector3(go.GetComponent<RectTransform>().rect.width + 0.1f, 0, 0);
             Weapon[] weaponsInInventory = _selectedMech.Inventory.Weapons;
             for (int i = 0; i < weaponsInInventory.Length; i++)
             {
@@ -421,7 +421,7 @@ public class GarageUIManager : MonoBehaviour
                 GameObject weaponListtooltip = CreateWeaponTooltip(w);
                 // Position and show the tooltip as needed
                 weaponListtooltip.transform.SetParent(go.transform, false);
-                weaponListtooltip.transform.localPosition += new Vector3((go.transform.localScale.x + 0.1f) * (i + 1), 0, 0);
+                weaponListtooltip.transform.localPosition += new Vector3((go.GetComponent<RectTransform>().rect.width + 0.1f) * (i + 1), 0, 0);
             }
             
         }
@@ -430,13 +430,13 @@ public class GarageUIManager : MonoBehaviour
             // Display armor tooltip for item and equivalent armor in mechs inventory
             GameObject armorTooltip = CreateArmorTooltip(armor);
             armorTooltip.transform.SetParent(go.transform, false);
-            armorTooltip.transform.localPosition += new Vector3(go.transform.localScale.x + 0.1f, 0, 0);
+            armorTooltip.transform.localPosition += new Vector3(go.GetComponent<RectTransform>().rect.width + 0.1f, 0, 0);
             Armor armorInInventory = _selectedMech.Inventory.Armors[(int)armor.ArmorType];
             if (armorInInventory == null) return;
             if (armorInInventory == armor) return;
             GameObject armorInInventoryTooltip = CreateArmorTooltip(armorInInventory);
             armorInInventoryTooltip.transform.SetParent(go.transform, false);
-            armorInInventoryTooltip.transform.localPosition += new Vector3((go.transform.localScale.x + 0.1f) * 2, 0, 0);
+            armorInInventoryTooltip.transform.localPosition += new Vector3((go.GetComponent<RectTransform>().rect.width + 0.1f) * 2, 0, 0);
             
         }
         else if (item is EnergyShield shield)
@@ -444,13 +444,13 @@ public class GarageUIManager : MonoBehaviour
             // Display energy shield tooltip for item and equivalent energy shield in mechs inventory
             GameObject shieldTooltip = CreateEnergyShieldTooltip(shield);
             shieldTooltip.transform.SetParent(go.transform, false);
-            shieldTooltip.transform.localPosition += new Vector3(go.transform.localScale.x + 0.1f, 0, 0);
+            shieldTooltip.transform.localPosition += new Vector3(go.GetComponent<RectTransform>().rect.width + 0.1f, 0, 0);
             EnergyShield shieldInInventory = _selectedMech.Inventory.EnergyShield;
             if (shieldInInventory == null) return;
             if (shieldInInventory == shield) return;
             GameObject shieldInInventoryTooltip = CreateEnergyShieldTooltip(shieldInInventory);
             shieldInInventoryTooltip.transform.SetParent(go.transform, false);
-            shieldInInventoryTooltip.transform.localPosition += new Vector3((go.transform.localScale.x + 0.1f) * 2, 0, 0);
+            shieldInInventoryTooltip.transform.localPosition += new Vector3((go.GetComponent<RectTransform>().rect.width + 0.1f) * 2, 0, 0);
             
         }
 
