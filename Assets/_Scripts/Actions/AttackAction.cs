@@ -3,11 +3,11 @@ using System.Collections.Generic;
 
 public abstract class AttackAction : Action
 {
-    private List<Weapon> _weapons;
-    public List<Weapon> Weapons => _weapons;
+    private List<Attack> _attacks;
+    public List<Attack> Attacks => _attacks;
 
-    public AttackAction(ActionType type, MechController sourceMech, MechController targetMech, List<Weapon> weapons) : base(type, sourceMech, targetMech)
+    public AttackAction(ActionType type, MechController sourceMech, MechController targetMech, IEnumerable<Attack> attacks ) : base(type, sourceMech, targetMech)
     {
-        this._weapons = weapons;
+        this._attacks = new List<Attack>(attacks);
     }
 }

@@ -1,5 +1,6 @@
 using UnityEngine;
 using System;
+using System.Collections.Generic;
 using HeartOfIron.Enums;
 
 [Serializable]
@@ -12,33 +13,155 @@ public class Inventory
     [SerializeReference] private EnergyShield _energyShield;
     public EnergyShield EnergyShield => _energyShield;
 
+    private List<RangedAttack> _rangedAttacks;
+    public List<RangedAttack> RangedAttacks => _rangedAttacks;
+    private List<MeleeAttack> _meleeAttacks;
+    public List<MeleeAttack> MeleeAttacks => _meleeAttacks;
+
+    private Dictionary<Weapon, RangedAttack> _weaponToRangedAttackMap;
+    public Dictionary<Weapon, RangedAttack> WeaponToRangedAttackMap => _weaponToRangedAttackMap;
+    private Dictionary<Weapon, MeleeAttack> _weaponToMeleeAttackMap;
+    public Dictionary<Weapon, MeleeAttack> WeaponToMeleeAttackMap => _weaponToMeleeAttackMap;
+
     public Inventory()
     {
         _weapons = new Weapon[2];
         _armors = new Armor[4]; // Initialize armors array with 4 slots
         _energyShield = null; // Initialize energy shield to null
+        _rangedAttacks = new List<RangedAttack>();
+        _meleeAttacks = new List<MeleeAttack>();
+        _weaponToRangedAttackMap = new Dictionary<Weapon, RangedAttack>();
+        _weaponToMeleeAttackMap = new Dictionary<Weapon, MeleeAttack>();
     }
 
-    public Inventory(Weapon weapon1, Weapon weapon2, Armor[] armors, EnergyShield energyShield)
+    public void SetTimer(Weapon weapon,float timerValue)
     {
-        _weapons = new Weapon[2];
-        _weapons[(int)Hand.Right] = weapon1;
-        _weapons[(int)Hand.Left] = weapon2;
-        _armors = armors;
-        _energyShield = energyShield;
+        _weaponToRangedAttackMap[weapon]?.SetTimer(timerValue);
+        _weaponToMeleeAttackMap[weapon]?.SetTimer(timerValue);
     }
 
-    public Inventory(Weapon weapon1, Weapon weapon2, Armor armor1, Armor armor2, Armor armor3, Armor armor4, EnergyShield energyShield)
+    public void UpdateCooldowns(float deltaTime)
+    {
+        foreach (RangedAttack rA in _rangedAttacks)
+        {
+            if (rA != null)
+            {
+                rA.UpdateTimer(deltaTime);
+            }
+        }
+        foreach (MeleeAttack mA in _meleeAttacks)
+        {
+            if (mA != null)
+            {
+                mA.UpdateTimer(deltaTime);
+            }
+        }
+    }
+
+    private void DesignateAttacks()
+    {
+        if (_weapons[(int)Hand.Right] == null && _weapons[(int)Hand.Left] == null)
+        {
+            _rangedAttacks.Clear();
+            _meleeAttacks.Clear();
+        } else if (_weapons[(int)Hand.Right] != null && _weapons[(int)Hand.Left] == null)
+        {
+            RangedAttack rA = _weapons[(int)Hand.Right].GetRangedAttack();
+            if (rA != null)
+            {
+                _rangedAttacks.Add(rA);
+                _weaponToRangedAttackMap[_weapons[(int)Hand.Right]] = rA;
+            }
+            MeleeAttack mA = _weapons[(int)Hand.Right].GetMeleeAttack();
+            if (mA != null)
+            {
+                _meleeAttacks.Add(mA);
+                _weaponToMeleeAttackMap[_weapons[(int)Hand.Right]] = mA;
+            }
+        } else if (_weapons[(int)Hand.Right] == null && _weapons[(int)Hand.Left] != null)
+        {
+            RangedAttack rA = _weapons[(int)Hand.Left].GetRangedAttack();
+            if (rA != null)
+            {
+                _rangedAttacks.Add(rA);
+                _weaponToRangedAttackMap[_weapons[(int)Hand.Left]] = rA;
+            }
+            MeleeAttack mA = _weapons[(int)Hand.Left].GetMeleeAttack();
+            if (mA != null)
+            {
+                _meleeAttacks.Add(mA);
+                _weaponToMeleeAttackMap[_weapons[(int)Hand.Left]] = mA;
+            }
+        }
+        else if (_weapons[(int)Hand.Right] != null && _weapons[(int)Hand.Left] != null)
+        {
+            if (_weapons[(int)Hand.Right].IsMelee)
+            {
+                MeleeAttack mA = _weapons[(int)Hand.Right].GetMeleeAttack();
+                if (mA != null)
+                {
+                    _meleeAttacks.Add(mA);
+                    _weaponToMeleeAttackMap[_weapons[(int)Hand.Right]] = mA;
+                }
+                RangedAttack rA = _weapons[(int)Hand.Left].GetRangedAttack();
+                if (rA != null)
+                {
+                    _rangedAttacks.Add(rA);
+                    _weaponToRangedAttackMap[_weapons[(int)Hand.Left]] = rA;
+                }
+            }
+            else
+            {
+                RangedAttack rA = _weapons[(int)Hand.Right].GetRangedAttack();
+                if (rA != null)
+                {
+                    _rangedAttacks.Add(rA);
+                    _weaponToRangedAttackMap[_weapons[(int)Hand.Right]] = rA;
+                }
+                MeleeAttack mA = _weapons[(int)Hand.Left].GetMeleeAttack();
+                if (mA != null)
+                {
+                    _meleeAttacks.Add(mA);
+                    _weaponToMeleeAttackMap[_weapons[(int)Hand.Left]] = mA;
+                }
+            }
+        }
+    }
+
+    public Inventory(Mech mech, Weapon weapon1, Weapon weapon2, Armor[] armors, EnergyShield energyShield)
     {
         _weapons = new Weapon[2];
-        _weapons[(int)Hand.Right] = weapon1;
-        _weapons[(int)Hand.Left] = weapon2;
+        EquipWeapon(weapon1, mech);
+        EquipWeapon(weapon2, mech);
+        _armors = new Armor[4]; // Initialize armors array with 4 slots
+        foreach (Armor armor in armors)
+        {
+            EquipArmor(armor, mech);
+        }
+        EquipEnergyShield(energyShield, mech);
+        _rangedAttacks = new List<RangedAttack>();
+        _meleeAttacks = new List<MeleeAttack>();
+        _weaponToRangedAttackMap = new Dictionary<Weapon, RangedAttack>();
+        _weaponToMeleeAttackMap = new Dictionary<Weapon, MeleeAttack>();
+        DesignateAttacks();
+    }
+
+    public Inventory(Mech mech, Weapon weapon1, Weapon weapon2, Armor armor1, Armor armor2, Armor armor3, Armor armor4, EnergyShield energyShield)
+    {
+        _weapons = new Weapon[2];
+        EquipWeapon(weapon1, mech);
+        EquipWeapon(weapon2, mech);
         _armors = new Armor[4];
-        _armors[(int)ArmorType.Head] = armor1;
-        _armors[(int)ArmorType.Torso] = armor2;
-        _armors[(int)ArmorType.Arms] = armor3;
-        _armors[(int)ArmorType.Legs] = armor4;
-        _energyShield = energyShield;
+        EquipArmor(armor1, mech);
+        EquipArmor(armor2, mech);
+        EquipArmor(armor3, mech);
+        EquipArmor(armor4, mech);
+        EquipEnergyShield(energyShield, mech);
+        _rangedAttacks = new List<RangedAttack>();
+        _meleeAttacks = new List<MeleeAttack>();
+        _weaponToRangedAttackMap = new Dictionary<Weapon, RangedAttack>();
+        _weaponToMeleeAttackMap = new Dictionary<Weapon, MeleeAttack>();
+        DesignateAttacks();
     }
 
     public bool HasItem(Item item)
@@ -91,6 +214,7 @@ public class Inventory
                     if (i == weapon.SlotsRequired - 1)
                     {
                         weapon.SetOwner(owner); // Set the owner of the weapon when equipped
+                        DesignateAttacks();
                         return true; // Successfully equipped all required slots
                     }
                 }
@@ -101,12 +225,14 @@ public class Inventory
             {
                 _weapons[(int)Hand.Right] = weapon;
                 weapon.SetOwner(owner); // Set the owner of the weapon when equipped
+                DesignateAttacks();
                 return true;
             }
             else if (_weapons[(int)Hand.Left] == null)
             {
                 _weapons[(int)Hand.Left] = weapon;
                 weapon.SetOwner(owner); // Set the owner of the weapon when equipped
+                DesignateAttacks();
                 return true;
             }
         } else
@@ -129,6 +255,7 @@ public class Inventory
             _weapons[(int)Hand.Left] = null;
             weapon.ClearOwner(); // Clear the owner of the weapon when unequipped
         }
+        DesignateAttacks(); // Update attacks after unequipping a weapon
     }
 
     public bool EquipArmor(Armor armor, Mech owner)
@@ -256,45 +383,45 @@ public class Inventory
         return true;
     }
 
-    public Weapon GetIdealRangedWeapon(float distance)
+    public Attack GetIdealAttack(float distance)
     {
-        Weapon idealWeapon = null;
-        foreach (Weapon weapon in _weapons)
-        {
-            if (weapon != null && !weapon.IsMelee && distance > weapon.MeleeRange)
-            {
-                if (idealWeapon == null)
-                {
-                    idealWeapon = weapon;
-                } else if (weapon.CanAttack(distance) && !idealWeapon.CanAttack(distance))
-                {
-                    idealWeapon = weapon;
-                } else if (weapon.CanAttack(distance) && weapon.GetAverageDamage(distance) > idealWeapon.GetAverageDamage(distance))
-                {
-                    idealWeapon = weapon;
-                }
-            }
-        }
-        return idealWeapon;
+        MeleeAttack idealMeleeAttack = GetIdealMeleeAttack(distance);
+        RangedAttack idealRangedAttack = GetIdealRangedAttack(distance);
+
+        if (idealMeleeAttack == null) return idealRangedAttack;
+        if (idealRangedAttack == null) return idealMeleeAttack;
+
+        return idealMeleeAttack.GetAverageDamage(distance) > idealRangedAttack.GetAverageDamage(distance) ? (Attack)idealMeleeAttack : (Attack)idealRangedAttack;
     }
 
-    public Weapon GetIdealMeleeWeapon()
+    public RangedAttack GetIdealRangedAttack(float distance)
     {
-        Weapon idealWeapon = null;
-        foreach (Weapon weapon in _weapons)
+        RangedAttack idealRangedAttack = _rangedAttacks.Count > 0 ? _rangedAttacks[0] : null;
+
+        for (int i = 1; i < _rangedAttacks.Count; i++)
         {
-            if (weapon != null)
+            if (_rangedAttacks[i].GetAverageDamage(distance) > idealRangedAttack.GetAverageDamage(distance))
             {
-                if (idealWeapon == null)
-                {
-                    idealWeapon = weapon;
-                } else if (weapon.GetAverageDamage(0) > idealWeapon.GetAverageDamage(0))
-                {
-                    idealWeapon = weapon;
-                }
+                idealRangedAttack = _rangedAttacks[i];
             }
         }
-        return idealWeapon;
+        
+        return idealRangedAttack;
+    }
+
+    public MeleeAttack GetIdealMeleeAttack(float distance)
+    {
+        MeleeAttack idealMeleeAttack = null;
+
+        for (int i = 0; i < _meleeAttacks.Count; i++)
+        {
+            if (idealMeleeAttack == null || _meleeAttacks[i].GetAverageDamage(distance) > idealMeleeAttack.GetAverageDamage(distance))
+            {
+                idealMeleeAttack = _meleeAttacks[i];
+            }
+        }
+        
+        return idealMeleeAttack;
     }
 
     public string GetInfo()

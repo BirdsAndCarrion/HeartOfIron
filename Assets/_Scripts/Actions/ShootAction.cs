@@ -9,7 +9,7 @@ public class ShootAction : AttackAction
     private readonly float MAX_FIRING_ANGLE = 60f; // Maximum firing angle for the weapon's arc
     private readonly float MAX_WEAPON_RANGE = 1000f; // Maximum range for the weapon's projectile
 
-    public ShootAction(MechController sourceMech, MechController targetMech, List<Weapon> weapons) : base(ActionType.Shoot, sourceMech, targetMech, weapons)
+    public ShootAction(MechController sourceMech, MechController targetMech, List<RangedAttack> attacks) : base(ActionType.Shoot, sourceMech, targetMech, attacks)
     {
     }
 
@@ -23,10 +23,18 @@ public class ShootAction : AttackAction
                 return ActionResult.Failure;
             return ActionResult.Retry; // Outside of firing cone, retry after rotating mech
         }
-        List<ActionResult> results = new List<ActionResult>();
-        foreach (Weapon w in Weapons)
+        List<RangedAttack> rangedAttacks = new List<RangedAttack>();
+        foreach (Attack a in Attacks)
         {
-            Debug.Log($"{SourceMech.Mech.Name} is shooting at {TargetMech.Mech.Name} with {w.Name}.");
+            if (a is RangedAttack rangedAttack)
+            {
+                rangedAttacks.Add(rangedAttack);
+            }
+        }
+        List<ActionResult> results = new List<ActionResult>();
+        foreach (RangedAttack r in rangedAttacks)
+        {
+            Debug.Log($"{SourceMech.Mech.Name} is shooting at {TargetMech.Mech.Name} with {r.Weapon.Name}.");
             Transform target = GetTargetLimb();
             if (target == null)
             {
@@ -38,29 +46,30 @@ public class ShootAction : AttackAction
             // Calculate the distance between the source and target mechs
             float distance = Vector3.Distance(SourceMech.transform.position, target.position);
             // Check that the weapon can attack at the calculated distance
-            if (w.CanAttack(distance))
+            if (r.CanAttack(distance))
             {
-                ShootProjectile shootProjectile = GetShootProjectile(w);
+                ShootProjectile shootProjectile = GetShootProjectile(r.Weapon.Name);
                 if (shootProjectile != null)
                 {
-                    for (int i = 0; i < w.NumShots; i++)
+                    for (int i = 0; i < r.NumShots; i++)
                     {
-                        Vector3 spreadDirection = GetSpreadDirection(direction, distance, w);
-                        shootProjectile.Shoot(spreadDirection, w.Damage, MAX_WEAPON_RANGE);
-                        Debug.Log($"{SourceMech.Mech.Name} shot at {TargetMech.Mech.Name} with {w.Name}. Direction: {spreadDirection}");
+                        Vector3 spreadDirection = GetSpreadDirection(direction, distance, r);
+                        shootProjectile.Shoot(spreadDirection, r.Damage, MAX_WEAPON_RANGE);
+                        Debug.Log($"{SourceMech.Mech.Name} shot at {TargetMech.Mech.Name} with {r.Weapon.Name}. Direction: {spreadDirection}");
                     }
-                    w.ConsumeAmmo(1); // Consume 1 ammo for the shot
+                    r.ConsumeAmmo(1); // Consume 1 ammo for the shot
+                    SourceMech.Mech.Inventory.SetTimer(r.Weapon, r.Cooldown);
                     return ActionResult.Success;
                 }
                 else
                 {
-                    Debug.LogError($"ShootProjectile component not found for weapon {w.Name} on {SourceMech.Mech.Name}.");
+                    Debug.LogError($"ShootProjectile component not found for weapon {r.Weapon.Name} on {SourceMech.Mech.Name}.");
                     return ActionResult.Failure;
                 }
             }
             else
             {
-                Debug.LogWarning($"{SourceMech.Mech.Name} cannot shoot because the weapon cannot attack or the ShootProjectile component is missing.");
+                Debug.LogWarning($"{SourceMech.Mech.Name} cannot shoot because the weapon {r.Weapon.Name} cannot attack or the ShootProjectile component is missing.");
                 return ActionResult.Failure;
             }
         }
@@ -78,12 +87,12 @@ public class ShootAction : AttackAction
         return ActionResult.Failure;
     }
 
-    private ShootProjectile GetShootProjectile(Weapon weapon)
+    private ShootProjectile GetShootProjectile(string name)
     {
         ShootProjectile[] shootProjectiles = SourceMech.ShootProjectiles;
         foreach (var shootProjectile in shootProjectiles)
         {
-            if (shootProjectile != null && shootProjectile.gameObject.name == weapon.Name)
+            if (shootProjectile != null && shootProjectile.gameObject.name == name)
             {
                 return shootProjectile;
             }
@@ -91,9 +100,9 @@ public class ShootAction : AttackAction
         return null;
     }
 
-    private Vector3 GetSpreadDirection(Vector3 direction, float distance, Weapon weapon)
+    private Vector3 GetSpreadDirection(Vector3 direction, float distance, RangedAttack r)
     {
-        float spread = weapon.CalculateSpread(distance) * SPREAD_MULTIPLIER;
+        float spread = r.CalculateSpread(distance) * SPREAD_MULTIPLIER;
         spread = Mathf.Max(spread - SourceMech.GetBonus(ActionType.Shoot), 0f);
         Vector3 perpendicular = Vector3.Cross(direction, Vector3.up).normalized;
         Vector3 spreadDirection = direction + perpendicular * UnityEngine.Random.Range(-spread, spread);
@@ -123,16 +132,16 @@ public class ShootAction : AttackAction
 
     public override ActionResult CanExecute()
     {
-        if (SourceMech == null || TargetMech == null || Weapons == null || Weapons.Count == 0)
+        if (SourceMech == null || TargetMech == null || Attacks == null || Attacks.Count == 0)
         {
-            Debug.LogWarning("ShootAction cannot be executed because SourceMech, TargetMech, or Weapons is null.");
+            Debug.LogWarning("ShootAction cannot be executed because SourceMech, TargetMech, or Attacks is null.");
             return ActionResult.NullInput;
         }
-        foreach (Weapon w in Weapons)
+        foreach (Attack a in Attacks)
         {
-            if (w == null)
+            if (a == null)
             {
-                Debug.LogWarning("ShootAction cannot be executed because one of the weapons is null.");
+                Debug.LogWarning("ShootAction cannot be executed because one of the attacks is null.");
                 return ActionResult.NullInput;
             }
         }

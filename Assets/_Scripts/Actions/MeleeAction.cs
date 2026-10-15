@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 public class MeleeAction : AttackAction
 {
-    public MeleeAction(MechController sourceMech, MechController targetMech, List<Weapon> weapons) : base(ActionType.Melee, sourceMech, targetMech, weapons)
+    public MeleeAction(MechController sourceMech, MechController targetMech, List<MeleeAttack> attacks) : base(ActionType.Melee, sourceMech, targetMech, attacks)
     {
     }
 
@@ -18,42 +18,50 @@ public class MeleeAction : AttackAction
                 return ActionResult.Failure;
             return ActionResult.Retry; // Retry if melee action cannot be executed for other reasons
         }
-        List<ActionResult> results = new List<ActionResult>();
-        foreach (Weapon w in Weapons)
+        List<MeleeAttack> meleeAttacks = new List<MeleeAttack>();
+        foreach (Attack a in Attacks)
         {
-            Debug.Log($"{SourceMech.Mech.Name} is performing a melee attack on {TargetMech.Mech.Name} with {w.Name}.");
-            // Implement the melee attack logic here (e.g., apply damage to the target mech)
-            if (Vector3.Distance(SourceMech.transform.position, TargetMech.transform.position) <= w.MeleeRange && w.CanAttack(w.MeleeRange) 
-                && UnityEngine.Random.value <= w.MeleeAccuracy + SourceMech.GetBonus(ActionType.Melee))
+            if (a is MeleeAttack meleeAttack)
             {
-                if (w == SourceMech.Mech.Inventory.Weapons[(int)Hand.Right] && w.SlotsRequired == 2)
+                meleeAttacks.Add(meleeAttack);
+            }
+        }
+        List<ActionResult> results = new List<ActionResult>();
+        foreach (MeleeAttack m in meleeAttacks)
+        {
+            Debug.Log($"{SourceMech.Mech.Name} is performing a melee attack on {TargetMech.Mech.Name} with {m.Weapon.Name}.");
+            // Implement the melee attack logic here (e.g., apply damage to the target mech)
+            if (Vector3.Distance(SourceMech.transform.position, TargetMech.transform.position) <= m.Range && m.CanAttack(m.Range) 
+                && UnityEngine.Random.value <= m.Accuracy + SourceMech.GetBonus(ActionType.Melee))
+            {
+                if (m.Weapon.Name == SourceMech.Mech.Inventory.Weapons[(int)Hand.Right].Name && m.HandsRequired == 2)
                 {
                     SourceMech.Animator.SetTrigger("MeleeTwo");
-                } else if (w == SourceMech.Mech.Inventory.Weapons[(int)Hand.Right])
+                } else if (m.Weapon.Name == SourceMech.Mech.Inventory.Weapons[(int)Hand.Right].Name)
                 {
                     SourceMech.Animator.SetTrigger("MeleeRight");
                 } else
                 {
                     SourceMech.Animator.SetTrigger("MeleeLeft");
                 }
-                w.SwingCooldown(); // Set the cooldown time for the melee attack
+                m.SetTimer(m.Cooldown); // Set the cooldown time for the melee attack
                 Debug.Log($"{SourceMech.Mech.Name} hit {TargetMech.Mech.Name} with a melee attack.");
-                TargetMech.TakeDamage(w.MeleeDamage, 0); // TODO: Placeholder until location based damage is figured out for melee combat
+                TargetMech.TakeDamage(m.Damage, 0); // TODO: Placeholder until location based damage is figured out for melee combat
                 results.Add(ActionResult.Success);
             }
             else
             {
-                if (Vector3.Distance(SourceMech.transform.position, TargetMech.transform.position) > w.MeleeRange)
+                if (Vector3.Distance(SourceMech.transform.position, TargetMech.transform.position) > m.Range)
                 {
-                    Debug.LogWarning($"{SourceMech.Mech.Name} cannot perform melee attack on {TargetMech.Mech.Name} because the target is out of melee range.");
+                    Debug.LogWarning($"{SourceMech.Mech.Name} cannot perform melee attack on {TargetMech.Mech.Name} because the target is out of melee range of {m.Weapon.Name}.");
                 }
-                else if (!w.CanAttack(w.MeleeRange))
+                else if (!m.CanAttack(m.Range))
                 {
-                    Debug.LogWarning($"{SourceMech.Mech.Name} cannot perform melee attack on {TargetMech.Mech.Name} because the weapon is on cooldown or out of ammo.");
+                    Debug.LogWarning($"{SourceMech.Mech.Name} cannot perform melee attack on {TargetMech.Mech.Name} because the weapon {m.Weapon.Name} is on cooldown or out of ammo.");
                 }
                 else {
-                    w.SwingCooldown(); // Set the cooldown time for the melee attack
-                    Debug.LogWarning($"{SourceMech.Mech.Name} cannot perform melee attack on {TargetMech.Mech.Name} due to unknown reasons.");
+                    SourceMech.Mech.Inventory.SetTimer(m.Weapon, m.Cooldown); // Set the cooldown time for the melee attack
+                    Debug.LogWarning($"{SourceMech.Mech.Name} cannot perform melee attack on {TargetMech.Mech.Name} with {m.Weapon.Name} due to unknown reasons.");
                 }
                 results.Add(ActionResult.Failure);
             }
@@ -74,16 +82,16 @@ public class MeleeAction : AttackAction
 
     public override ActionResult CanExecute()
     {
-        if (SourceMech == null || TargetMech == null || Weapons == null || Weapons.Count == 0)
+        if (SourceMech == null || TargetMech == null || Attacks == null || Attacks.Count == 0)
         {
-            Debug.LogWarning("MeleeAction cannot be executed because SourceMech, TargetMech, or Weapon is null.");
+            Debug.LogWarning("MeleeAction cannot be executed because SourceMech, TargetMech, or Attacks is null.");
             return ActionResult.NullInput;
         }
-        foreach (Weapon weapon in Weapons)
+        foreach (Attack attack in Attacks)
         {
-            if (weapon == null)
+            if (attack == null)
             {
-                Debug.LogWarning("MeleeAction cannot be executed because one of the weapons is null.");
+                Debug.LogWarning("MeleeAction cannot be executed because one of the attacks is null.");
                 return ActionResult.NullInput;
             }
         }

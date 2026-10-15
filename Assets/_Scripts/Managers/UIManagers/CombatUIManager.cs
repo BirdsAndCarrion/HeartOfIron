@@ -392,23 +392,23 @@ public class CombatUIManager : MonoBehaviour
                 _confirmButton.onClick.RemoveAllListeners();
                 _confirmButton.onClick.AddListener(() =>
                 {
-                    List<Weapon> shootingWeapons = new List<Weapon>();
+                    List<RangedAttack> shootingWeapons = new List<RangedAttack>();
                     if (_weaponDropdown.options[_weaponDropdown.value].text == "All")
                     {
-                        foreach (Weapon weapon in _selectedMechController.Mech.Inventory.Weapons)
+                        foreach (RangedAttack rangedAttack in _selectedMechController.Mech.Inventory.RangedAttacks)
                         {
-                            if (weapon != null && !weapon.IsMelee)
+                            if (rangedAttack != null)
                             {
-                                shootingWeapons.Add(weapon);
+                                shootingWeapons.Add(rangedAttack);
                             }
                         }
                     }
                     else
                     {
-                        Weapon selectedWeapon = DetermineWeaponByDropdownSelection();
-                        if (selectedWeapon != null)
+                        RangedAttack selectedRangedAttack = DetermineRangedAttackByDropdownSelection();
+                        if (selectedRangedAttack != null)
                         {
-                            shootingWeapons.Add(selectedWeapon);
+                            shootingWeapons.Add(selectedRangedAttack);
                         }
                     }
                     MechController targetMechController = CombatManager.Instance.EnemyMechs.Find(m => m.Mech.Name == _targetDropdown.options[_targetDropdown.value].text);
@@ -444,23 +444,23 @@ public class CombatUIManager : MonoBehaviour
                 _confirmButton.onClick.RemoveAllListeners();
                 _confirmButton.onClick.AddListener(() =>
                 {
-                    List<Weapon> meleeWeapons = new List<Weapon>();
+                    List<MeleeAttack> meleeWeapons = new List<MeleeAttack>();
                     if (_weaponDropdown.options[_weaponDropdown.value].text == "All")
                     {
-                        foreach (Weapon weapon in _selectedMechController.Mech.Inventory.Weapons)
+                        foreach (MeleeAttack meleeAttack in _selectedMechController.Mech.Inventory.MeleeAttacks)
                         {
-                            if (weapon != null && weapon.IsMelee)
+                            if (meleeAttack != null)
                             {
-                                meleeWeapons.Add(weapon);
+                                meleeWeapons.Add(meleeAttack);
                             }
                         }
                     }
                     else
                     {
-                        Weapon selectedWeapon = DetermineWeaponByDropdownSelection();
-                        if (selectedWeapon != null)
+                        MeleeAttack selectedMeleeAttack = DetermineMeleeAttackByDropdownSelection();
+                        if (selectedMeleeAttack != null)
                         {
-                            meleeWeapons.Add(selectedWeapon);
+                            meleeWeapons.Add(selectedMeleeAttack);
                         }
                     }
 
@@ -494,23 +494,23 @@ public class CombatUIManager : MonoBehaviour
                 _confirmButton.onClick.RemoveAllListeners();
                 _confirmButton.onClick.AddListener(() =>
                 {
-                    List<Weapon> weaponsToReload = new List<Weapon>();
+                    List<RangedAttack> weaponsToReload = new List<RangedAttack>();
                     if (_weaponDropdown.options[_weaponDropdown.value].text == "All")
                     {
-                        foreach (Weapon weapon in _selectedMechController.Mech.Inventory.Weapons)
+                        foreach (RangedAttack rangedAttack in _selectedMechController.Mech.Inventory.RangedAttacks)
                         {
-                            if (weapon != null && weapon.CurrentAmmo < weapon.MaxAmmo && !weapon.IsMelee)
+                            if (rangedAttack != null && rangedAttack.Weapon.CurrentAmmo < rangedAttack.Weapon.MaxAmmo)
                             {
-                                weaponsToReload.Add(weapon);
+                                weaponsToReload.Add(rangedAttack);
                             }
                         }
                     }
                     else
                     {
-                        Weapon selectedWeapon = Array.Find(_selectedMechController.Mech.Inventory.Weapons, w => w != null && w.Name == _weaponDropdown.options[_weaponDropdown.value].text);
-                        if (selectedWeapon != null)
+                        RangedAttack selectedRangedAttack = Array.Find(_selectedMechController.Mech.Inventory.RangedAttacks.ToArray(), ra => ra != null && ra.Weapon.Name == _weaponDropdown.options[_weaponDropdown.value].text);
+                        if (selectedRangedAttack != null)
                         {
-                            weaponsToReload.Add(selectedWeapon);
+                            weaponsToReload.Add(selectedRangedAttack);
                         }
                     }
                     ReloadAction reloadAction = new ReloadAction(_selectedMechController, weaponsToReload);
@@ -545,23 +545,23 @@ public class CombatUIManager : MonoBehaviour
                 _confirmButton.onClick.RemoveAllListeners();
                 _confirmButton.onClick.AddListener(() =>
                 {
-                    List<Weapon> weaponsToCharge = new List<Weapon>();
+                    List<MeleeAttack> weaponsToCharge = new List<MeleeAttack>();
                     if (_weaponDropdown.options[_weaponDropdown.value].text == "All")
                     {
-                        foreach (Weapon weapon in _selectedMechController.Mech.Inventory.Weapons)
+                        foreach (MeleeAttack attack in _selectedMechController.Mech.Inventory.MeleeAttacks)
                         {
-                            if (weapon != null && weapon.IsMelee)
+                            if (attack != null)
                             {
-                                weaponsToCharge.Add(weapon);
+                                weaponsToCharge.Add(attack);
                             }
                         }
                     }
                     else
                     {
-                        Weapon selectedWeapon = DetermineWeaponByDropdownSelection();
-                        if (selectedWeapon != null)
+                        MeleeAttack selectedAttack = DetermineMeleeAttackByDropdownSelection();
+                        if (selectedAttack != null)
                         {
-                            weaponsToCharge.Add(selectedWeapon);
+                            weaponsToCharge.Add(selectedAttack);
                         }
                     }
                     MechController targetMechController = CombatManager.Instance.GetVisibleEnemyMechs().Find(m => m.Mech.Name == _targetDropdown.options[_targetDropdown.value].text);
@@ -613,6 +613,18 @@ public class CombatUIManager : MonoBehaviour
     {
         Weapon selectedWeapon = Array.Find(_selectedMechController.Mech.Inventory.Weapons, w => w != null && w.Name == _weaponDropdown.options[_weaponDropdown.value].text);
         return selectedWeapon;
+    }
+
+    private RangedAttack DetermineRangedAttackByDropdownSelection()
+    {
+        Weapon selectedWeapon = DetermineWeaponByDropdownSelection();
+        return selectedWeapon != null && _selectedMechController.Mech.Inventory.WeaponToRangedAttackMap.ContainsKey(selectedWeapon) ? _selectedMechController.Mech.Inventory.WeaponToRangedAttackMap[selectedWeapon] : null;
+    }
+
+    private MeleeAttack DetermineMeleeAttackByDropdownSelection()
+    {
+        Weapon selectedWeapon = DetermineWeaponByDropdownSelection();
+        return selectedWeapon != null && _selectedMechController.Mech.Inventory.WeaponToMeleeAttackMap.ContainsKey(selectedWeapon) ? _selectedMechController.Mech.Inventory.WeaponToMeleeAttackMap[selectedWeapon] : null;
     }
 
     private float DetermineMeleeRangeByDropdownSelection()
