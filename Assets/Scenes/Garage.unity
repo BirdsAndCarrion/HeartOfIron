@@ -827,6 +827,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: db39be55eec5865458dcb65725bdee80, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GarageUIManager
+  _canvasRectTransform: {fileID: 1920779451}
   _garageNavButton: {fileID: 2099938343}
   _mechSelectionPanel: {fileID: 601930946}
   _mechSelectionOptionsPanel: {fileID: 1166857266}
@@ -4341,6 +4342,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 365202217902530198, guid: ea0507330e98c4e46ad05605552b2492, type: 3}
+      propertyPath: m_Padding.m_Left
+      value: 15
+      objectReference: {fileID: 0}
     - target: {fileID: 394338989908610361, guid: ea0507330e98c4e46ad05605552b2492, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -5153,6 +5158,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7946519843499465837, guid: ea0507330e98c4e46ad05605552b2492, type: 3}
+      propertyPath: m_Padding.m_Left
+      value: 15
+      objectReference: {fileID: 0}
     - target: {fileID: 8214292532667676622, guid: ea0507330e98c4e46ad05605552b2492, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -5280,6 +5289,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1437086374}
   - component: {fileID: 1437086376}
+  - component: {fileID: 1437086375}
   m_Layer: 5
   m_Name: Content
   m_TagString: Untagged
@@ -5302,10 +5312,24 @@ RectTransform:
   m_Father: {fileID: 57533623}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0.0008820072, y: 0.00056164607}
-  m_SizeDelta: {x: -256.3333, y: 0}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 0.00018310547, y: 0.0005493164}
+  m_SizeDelta: {x: 716.6667, y: 0}
   m_Pivot: {x: 0, y: 1}
+--- !u!114 &1437086375
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1437086373}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3245ec927659c4140ac4f8d17403cc18, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.ContentSizeFitter
+  m_HorizontalFit: 0
+  m_VerticalFit: 2
 --- !u!114 &1437086376
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5315,21 +5339,23 @@ MonoBehaviour:
   m_GameObject: {fileID: 1437086373}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8a8695521f0d02e499659fee002a26c2, type: 3}
+  m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.GridLayoutGroup
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.VerticalLayoutGroup
   m_Padding:
-    m_Left: 10
-    m_Right: 10
-    m_Top: 10
-    m_Bottom: 10
-  m_ChildAlignment: 0
-  m_StartCorner: 0
-  m_StartAxis: 0
-  m_CellSize: {x: 400, y: 250}
-  m_Spacing: {x: 25, y: 25}
-  m_Constraint: 0
-  m_ConstraintCount: 5
+    m_Left: 50
+    m_Right: 50
+    m_Top: 50
+    m_Bottom: 50
+  m_ChildAlignment: 1
+  m_Spacing: 25
+  m_ChildForceExpandWidth: 1
+  m_ChildForceExpandHeight: 0
+  m_ChildControlWidth: 1
+  m_ChildControlHeight: 0
+  m_ChildScaleWidth: 0
+  m_ChildScaleHeight: 0
+  m_ReverseArrangement: 0
 --- !u!1 &1465208754
 GameObject:
   m_ObjectHideFlags: 0
@@ -5413,7 +5439,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 841783290}
   m_Direction: 0
   m_Value: 0
-  m_Size: 0.99999666
+  m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:

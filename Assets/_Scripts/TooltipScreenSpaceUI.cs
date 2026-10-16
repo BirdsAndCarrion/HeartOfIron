@@ -46,4 +46,9 @@ public class TooltipScreenSpaceUI : MonoBehaviour
         // Debug.Log($"Background size: {backgroundSize}");
         backgroundRectTransform.sizeDelta = backgroundSize;
     }
+
+    public void HideTooltip()
+    {
+        gameObject.SetActive(false);
+    }
 }

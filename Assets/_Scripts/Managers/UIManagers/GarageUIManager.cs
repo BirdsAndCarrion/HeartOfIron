@@ -9,6 +9,10 @@ using System.Threading.Tasks;
 
 public class GarageUIManager : MonoBehaviour
 {
+
+    private readonly float TOOLTIP_OFFSET_X = 0.5f;
+
+    [SerializeField] RectTransform _canvasRectTransform;
     [SerializeField] private GameObject _garageNavButton;
     [Header("MechSelection UI Elements")]
     [SerializeField] private GameObject _mechSelectionPanel;
@@ -112,7 +116,7 @@ public class GarageUIManager : MonoBehaviour
         {
             Destroy(child.gameObject);
         }
-        _itemTypes.Sort((a, b) => b.CompareTo(a));
+        _itemTypes.Sort((a, b) => a.CompareTo(b));
         foreach (ItemType itemType in _itemTypes)
         {
             switch (itemType)
@@ -398,7 +402,7 @@ public class GarageUIManager : MonoBehaviour
             // Debug.Log($"Displaying tooltip for weapon: {weapon?.Name}");
             GameObject weaponTooltip = CreateWeaponTooltip(weapon);
             weaponTooltip.transform.SetParent(go.transform, false);
-            weaponTooltip.transform.localPosition += new Vector3(go.GetComponent<RectTransform>().rect.width + 0.1f, 0, 0);
+            weaponTooltip.transform.localPosition = GetInitialOffsetX(go) / _canvasRectTransform.localScale.x;
             Weapon[] weaponsInInventory = _selectedMech.Inventory.Weapons;
             for (int i = 0; i < weaponsInInventory.Length; i++)
             {
@@ -408,14 +412,9 @@ public class GarageUIManager : MonoBehaviour
                 // Display tooltip for each weapon in inventory
                 GameObject weaponListtooltip = CreateWeaponTooltip(w);
                 // Position and show the tooltip as needed
+                Vector3 wOffset = GetChildOffsetX(go);
                 weaponListtooltip.transform.SetParent(go.transform, false);
-                float wOffsetX = go.GetComponent<RectTransform>().rect.width + 0.1f;
-                foreach (Transform child in go.transform)
-                {
-                    Debug.Log($"Child transform: {child.name}, Width: {child.GetComponent<RectTransform>().rect.width}");
-                    wOffsetX += child.GetComponent<RectTransform>().rect.width + 0.1f;
-                }
-                weaponListtooltip.transform.localPosition += new Vector3(wOffsetX, 0, 0);
+                weaponListtooltip.transform.localPosition = wOffset / _canvasRectTransform.localScale.x;
             }
             
         }
@@ -424,18 +423,14 @@ public class GarageUIManager : MonoBehaviour
             // Display armor tooltip for item and equivalent armor in mechs inventory
             GameObject armorTooltip = CreateArmorTooltip(armor);
             armorTooltip.transform.SetParent(go.transform, false);
-            armorTooltip.transform.localPosition += new Vector3(go.GetComponent<RectTransform>().rect.width + 0.1f, 0, 0);
+            armorTooltip.transform.localPosition = GetInitialOffsetX(go) / _canvasRectTransform.localScale.x;
             Armor armorInInventory = _selectedMech.Inventory.Armors[(int)armor.ArmorType];
             if (armorInInventory == null) return;
             if (armorInInventory == armor) return;
             GameObject armorInInventoryTooltip = CreateArmorTooltip(armorInInventory);
+            Vector3 aOffset = GetChildOffsetX(go);
             armorInInventoryTooltip.transform.SetParent(go.transform, false);
-            float aOffsetX = go.GetComponent<RectTransform>().rect.width + 0.1f;
-            foreach (Transform child in go.transform)
-            {
-                aOffsetX += child.GetComponent<RectTransform>().rect.width + 0.1f;
-            }
-            armorInInventoryTooltip.transform.localPosition += new Vector3(aOffsetX, 0, 0);
+            armorInInventoryTooltip.transform.localPosition = aOffset / _canvasRectTransform.localScale.x;
             
         }
         else if (item is EnergyShield shield)
@@ -443,20 +438,41 @@ public class GarageUIManager : MonoBehaviour
             // Display energy shield tooltip for item and equivalent energy shield in mechs inventory
             GameObject shieldTooltip = CreateEnergyShieldTooltip(shield);
             shieldTooltip.transform.SetParent(go.transform, false);
-            shieldTooltip.transform.localPosition += new Vector3(go.GetComponent<RectTransform>().rect.width + 0.1f, 0, 0);
+            shieldTooltip.transform.localPosition = GetInitialOffsetX(go) / _canvasRectTransform.localScale.x;
             EnergyShield shieldInInventory = _selectedMech.Inventory.EnergyShield;
             if (shieldInInventory == null) return;
             if (shieldInInventory == shield) return;
             GameObject shieldInInventoryTooltip = CreateEnergyShieldTooltip(shieldInInventory);
+            Vector3 sOffset = GetChildOffsetX(go);
             shieldInInventoryTooltip.transform.SetParent(go.transform, false);
-            float sOffsetX = go.GetComponent<RectTransform>().rect.width + 0.1f;
-            foreach (Transform child in go.transform)
-            {
-                sOffsetX += child.GetComponent<RectTransform>().rect.width + 0.1f;
-            }
-            shieldInInventoryTooltip.transform.localPosition += new Vector3(sOffsetX, 0, 0);
+            shieldInInventoryTooltip.transform.localPosition = sOffset / _canvasRectTransform.localScale.x;
             
         }
+    }
+
+    private Vector3 GetInitialOffsetX(GameObject go)
+    {
+        return new Vector3(go.GetComponent<RectTransform>().rect.width / 2 + TOOLTIP_OFFSET_X, go.GetComponent<RectTransform>().rect.height / 2, 0);
+    }
+
+    private Vector3 GetChildOffsetX(GameObject go)
+    {
+        Vector3 offset = GetInitialOffsetX(go);
+        float offsetX = offset.x;
+        Debug.Log($"Initial offset X for {go.name}: {offsetX}");
+        foreach (Transform child in go.transform)
+        {
+            if (!child.gameObject.name.EndsWith("Tooltip"))
+                continue;
+            foreach (Transform grandChild in child)
+            {
+                if(!grandChild.gameObject.name.EndsWith("background"))
+                    continue;
+                offsetX += grandChild.GetComponent<RectTransform>().rect.width + TOOLTIP_OFFSET_X;
+            }
+        }
+        Debug.Log($"Calculated child offset X for {go.name}: {offsetX}");
+        return new Vector3(offsetX, offset.y, 0);
     }
 
     private GameObject CreateWeaponTooltip(Weapon weapon)

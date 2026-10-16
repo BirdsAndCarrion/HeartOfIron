@@ -50,8 +50,8 @@ public class MechInfoDisplayInternal : MonoBehaviour
             // Get the type of the mech
             _mechTypeText.text = mech.Type.ToString();
             // Get the level of the mech
-            _mechLevelText.text = mech.Level.ToString();
-            _mechExpText.text = mech.Experience.ToString();
+            _mechLevelText.text = "Lvl " + mech.Level.ToString();
+            _mechExpText.text = "ExP " + mech.Experience.ToString();
             if (mech.Pilot == null)
             {
                 _mechPilotNameText.text = "No Pilot";
@@ -61,7 +61,7 @@ public class MechInfoDisplayInternal : MonoBehaviour
                 _mechPilotNameText.text = mech.Pilot.Name;
             }
            
-            _mechMoveSpeedText.text = mech.MaxSpeed.ToString();
+            _mechMoveSpeedText.text = "Spd " + mech.MaxSpeed.ToString();
 
             // Get the weapons of the mech
             for (int i = 0; i < mech.Inventory.Weapons.Length; i++)
