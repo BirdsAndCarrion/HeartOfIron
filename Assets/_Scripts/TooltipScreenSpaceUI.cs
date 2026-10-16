@@ -23,9 +23,9 @@ public class TooltipScreenSpaceUI : MonoBehaviour
             tooltipText = transform.Find("Text (TMP)").GetComponent<TextMeshProUGUI>();
     }
 
-    public void DisplayTooltip(StringBuilder sb)
+    public void DisplayTooltip(string text)
     {
-        SetText(sb.ToString());
+        SetText(text);
     }
 
     private void SetText(string text)
@@ -37,13 +37,13 @@ public class TooltipScreenSpaceUI : MonoBehaviour
             return;
         }
         gameObject.SetActive(true);
-        Debug.Log($"Setting tooltip text: {text}");
+        // Debug.Log($"Setting tooltip text: {text}");
         tooltipText.SetText(text);
         tooltipText.ForceMeshUpdate();
         Vector2 textSize = tooltipText.GetPreferredValues(text);
-        Debug.Log($"Text size: {textSize}");
+        // Debug.Log($"Text size: {textSize}");
         Vector2 backgroundSize = new Vector2(textSize.x + PADDING * 2, textSize.y + PADDING * 2);
-        Debug.Log($"Background size: {backgroundSize}");
+        // Debug.Log($"Background size: {backgroundSize}");
         backgroundRectTransform.sizeDelta = backgroundSize;
     }
 }

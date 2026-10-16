@@ -56,6 +56,10 @@ public class EngiBayUIManager : MonoBehaviour
                 GameObject researchButton = Instantiate(researchButtonPrefab, engiBayOptionsDisplayPanel.transform);
                 researchButton.GetComponentInChildren<TextMeshProUGUI>().text = itemBlueprint.ItemName;
                 researchButton.GetComponent<Button>().onClick.AddListener(() => OnResearchButtonClicked(itemBlueprint));
+                if (currentItemBlueprint == itemBlueprint)
+                {
+                    researchButton.GetComponent<Image>().color = Color.green; // Highlight the selected research option
+                }
             }
         }
         else

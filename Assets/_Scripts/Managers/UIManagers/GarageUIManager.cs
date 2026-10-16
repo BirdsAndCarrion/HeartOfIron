@@ -4,6 +4,8 @@ using TMPro;
 using HeartOfIron.Enums;
 using UnityEngine.UI;
 using System.Text;
+using System.Threading.Tasks;
+
 
 public class GarageUIManager : MonoBehaviour
 {
@@ -13,23 +15,13 @@ public class GarageUIManager : MonoBehaviour
     [SerializeField] private GameObject _mechSelectionOptionsPanel;
     [SerializeField] private TextMeshProUGUI _mechSelectionText;
     [SerializeField] private GameObject _mechSelectionButtonPrefab;
-    [SerializeField] private Mech _selectedMech;
+    private Mech _selectedMech;
 
     [Header("MechMod UI Elements")]
     [SerializeField] private GameObject _mechModPanel;
     [SerializeField] private GameObject _mechModOptionsPanel;
-    [SerializeField] private GameObject _weaponStatsDisplay;
-    [SerializeField] private WeaponInfoDisplayInternal _weaponInfoDisplayInternal;
-    [SerializeField] private GameObject _armorStatsDisplay;
-    [SerializeField] private ArmorInfoDisplayInternal _armorInfoDisplayInternal;
-    [SerializeField] private GameObject _energyShieldStatsDisplay;
-    [SerializeField] private EnergyShieldInfoDisplayInternal _energyShieldInfoDisplayInternal;
-    //[SerializeField] private TextMeshProUGUI _mechModText;
     [SerializeField] private TMP_InputField _mechModNameText;
-    //[SerializeField] private TextMeshProUGUI _mechModInfoText;
     [SerializeField] private MechInfoDisplayInternal _mechInfoDisplayInternal;
-    [SerializeField] private GameObject _mechModEquipButton;
-    [SerializeField] private GameObject _mechModUnequipButton;
     [SerializeField] private GameObject _mechColorButton;
     [SerializeField] private GameObject _pilotColorButton;
     [SerializeField] private GameObject _colorPickerPanel;
@@ -46,6 +38,7 @@ public class GarageUIManager : MonoBehaviour
 
     void Start()
     {
+        Debug.Log("Showing mech selection panel.");
         ShowMechSelectionPanel();
     }
 
@@ -57,17 +50,35 @@ public class GarageUIManager : MonoBehaviour
 
     void ShowMechSelectionPanel()
     {
+        foreach (Transform child in _mechSelectionOptionsPanel.transform)
+        {
+            Destroy(child.gameObject);
+        }
         _mechModPanel.SetActive(false);
         List<Mech> playerMechs = UnitManager.Instance.PlayerMechs;
+        if (_selectedMech == null)
+        {
+            if (playerMechs.Count > 0)
+            {
+                // Debug.Log($"No mech selected. Defaulting to the first mech: {playerMechs[0].Name}");
+                _selectedMech = playerMechs[0];
+            }
+        } else
+        {
+            // Debug.Log($"Currently selected mech: {_selectedMech.Name}");
+        }
         if (playerMechs.Count != 0)
         {
             foreach (Mech mech in playerMechs)
             {
                 GameObject button = Instantiate(_mechSelectionButtonPrefab, _mechSelectionOptionsPanel.transform);
                 button.GetComponentInChildren<TextMeshProUGUI>().text = mech.Name;
-                button.GetComponent<UnityEngine.UI.Button>().onClick.AddListener(() => OnMechSelected(mech));
+                button.GetComponent<Button>().onClick.AddListener(() => OnMechSelected(mech));
+                if (_selectedMech == mech)
+                {
+                    button.GetComponent<Image>().color = Color.green;
+                }
             }
-            _selectedMech = playerMechs[0];
             _mechSelectionText.text = $"{_selectedMech.Name} selected. Select equip to modify it.";
         }
         _garageNavButton.GetComponent<Image>().color = new Color32(0xAE, 0x4D, 0x00, 0xFF); // Change the color of the garage nav button to indicate it's the current scene
@@ -78,7 +89,7 @@ public class GarageUIManager : MonoBehaviour
     {
         _selectedMech = mech;
         // TODO: Possibly spawn the selected mech in the garage scene
-        _mechSelectionText.text = $"{_selectedMech.Name} selected. Select equip to modify it.";
+        ShowMechSelectionPanel();
     }
 
     public void OnEquipMechButtonClicked()
@@ -95,15 +106,13 @@ public class GarageUIManager : MonoBehaviour
     {
         _mechSelectionPanel.SetActive(false);
         _colorPickerPanel.SetActive(false);
-        _weaponStatsDisplay.SetActive(false);
-        _armorStatsDisplay.SetActive(false);
-        _energyShieldStatsDisplay.SetActive(false);
         _mechModNameText.text = _selectedMech.Name;
         DisplayMechInfo(); // Refresh the displayed info
         foreach (Transform child in _mechModOptionsPanel.transform)
         {
             Destroy(child.gameObject);
         }
+        _itemTypes.Sort((a, b) => b.CompareTo(a));
         foreach (ItemType itemType in _itemTypes)
         {
             switch (itemType)
@@ -151,7 +160,7 @@ public class GarageUIManager : MonoBehaviour
             GameObject button = Instantiate(_mechSelectionButtonPrefab, _mechModOptionsPanel.transform);
             button.GetComponentInChildren<TextMeshProUGUI>().text = weapon.Name;
             button.GetComponent<HoverableItemTooltip>().item = weapon;
-            button.GetComponent<Button>().onClick.AddListener(() => OnItemSelected(weapon));
+            button.GetComponent<Button>().onClick.AddListener(async () => await OnItemSelected(button, weapon));
             if (_selectedMech.Inventory.HasItem(weapon))
             {
                 button.GetComponent<Image>().color = Color.green; // Indicate that the weapon is already equipped
@@ -171,7 +180,7 @@ public class GarageUIManager : MonoBehaviour
             GameObject button = Instantiate(_mechSelectionButtonPrefab, _mechModOptionsPanel.transform);
             button.GetComponentInChildren<TextMeshProUGUI>().text = armor.Name;
             button.GetComponent<HoverableItemTooltip>().item = armor;
-            button.GetComponent<Button>().onClick.AddListener(() => OnItemSelected(armor));
+            button.GetComponent<Button>().onClick.AddListener(async () => await OnItemSelected(button, armor));
             if (_selectedMech.Inventory.HasItem(armor))
             {
                 button.GetComponent<Image>().color = Color.green; // Indicate that the armor is already equipped
@@ -191,7 +200,7 @@ public class GarageUIManager : MonoBehaviour
             GameObject button = Instantiate(_mechSelectionButtonPrefab, _mechModOptionsPanel.transform);
             button.GetComponentInChildren<TextMeshProUGUI>().text = shield.Name;
             button.GetComponent<HoverableItemTooltip>().item = shield;
-            button.GetComponent<Button>().onClick.AddListener(() => OnItemSelected(shield));
+            button.GetComponent<Button>().onClick.AddListener(async () => await OnItemSelected(button, shield));
             if (_selectedMech.Inventory.HasItem(shield))
             {
                 button.GetComponent<Image>().color = Color.green; // Indicate that the shield is already equipped
@@ -199,19 +208,85 @@ public class GarageUIManager : MonoBehaviour
         }
     }
 
-    void OnItemSelected(Item item)
+    async Task OnItemSelected(GameObject itemObject, Item item)
     {
-        _selectedItem = item;
-        ShowItemDetails();
-        if (_selectedMech.Inventory.HasItem(item))
+        if (item == null)
         {
-            _mechModEquipButton.SetActive(false);
-            _mechModUnequipButton.SetActive(true);
+            Debug.LogWarning("Selected item is null.");
+            return;
+        } else if (item is Weapon)
+        {
+            Weapon weapon = item as Weapon;
+            // Handle weapon selection
+            if (item.Owner != null && item.Owner == _selectedMech)
+            {
+                _selectedMech.UnequipWeapon(weapon);
+            } else if (item.Owner == null)
+            {
+                bool success = _selectedMech.EquipWeapon(weapon);
+                if (!success)
+                {
+                    await HandleEquipFailure(itemObject);
+                }
+            } else
+            {
+                Debug.LogWarning("Weapon is already equipped by another mech.");
+                return; // Exit the method if the weapon is already equipped by another mech
+            }
         }
-        else
+        else if (item is Armor)
         {
-            _mechModEquipButton.SetActive(true);
-            _mechModUnequipButton.SetActive(false);
+            Armor armor = item as Armor;
+            // Handle armor selection
+            if (item.Owner != null && item.Owner == _selectedMech)
+            {
+                _selectedMech.UnequipArmor(armor);
+            } else if (item.Owner == null)
+            {
+                bool success = _selectedMech.EquipArmor(armor);
+                if (!success)
+                {
+                    await HandleEquipFailure(itemObject);
+                }
+            } else
+            {
+                Debug.LogWarning("Armor is already equipped by another mech.");
+                return; // Exit the method if the armor is already equipped by another mech
+            }
+        }
+        else if (item is EnergyShield)
+        {
+            EnergyShield shield = item as EnergyShield;
+            // Handle energy shield selection
+            if (item.Owner != null && item.Owner == _selectedMech)
+            {
+                _selectedMech.UnequipEnergyShield(shield);
+            } else if (item.Owner == null)
+            {
+                bool success = _selectedMech.EquipEnergyShield(shield);
+                if (!success)
+                {
+                    await HandleEquipFailure(itemObject);
+                }
+            } else
+            {
+                Debug.LogWarning("Energy shield is already equipped by another mech.");
+                return; // Exit the method if the energy shield is already equipped by another mech
+            }
+        }
+        ShowMechModPanel(); // Refresh the mech mod panel to reflect the selection change
+    }
+
+    private async Task HandleEquipFailure(GameObject itemObject)
+    {
+        // Flash object red for a brief moment to indicate equip failure
+        Image itemImage = itemObject.GetComponent<Image>();
+        if (itemImage != null)
+        {
+            Color originalColor = itemImage.color;
+            itemImage.color = Color.red;
+            await Task.Delay(500); // Wait for 0.5 seconds
+            itemImage.color = originalColor;
         }
     }
 
@@ -264,66 +339,6 @@ public class GarageUIManager : MonoBehaviour
         ShowMechModPanel(); // Refresh the mech mod panel to reflect the filter change
     }
 
-    public void OnEquipButtonClicked()
-    {
-        if (_selectedItem == null)
-        {
-            Debug.LogWarning("No item selected. Please select an item first.");
-            return;
-        }
-        if (_selectedItem is Weapon weapon)
-        {
-            if (_selectedMech.EquipWeapon(weapon))
-            {
-                _mechModEquipButton.SetActive(false);
-                _mechModUnequipButton.SetActive(true);
-            }
-        }
-        else if (_selectedItem is Armor armor)
-        {
-            if (_selectedMech.EquipArmor(armor))
-            {
-                _mechModEquipButton.SetActive(false);
-                _mechModUnequipButton.SetActive(true);
-            }
-        }
-        else if (_selectedItem is EnergyShield shield)
-        {
-            if (_selectedMech.EquipEnergyShield(shield))
-            {
-                _mechModEquipButton.SetActive(false);
-                _mechModUnequipButton.SetActive(true);
-            }
-        }
-        DisplayMechInfo(); // Refresh the displayed info
-        ShowMechModPanel(); // Refresh the mech mod panel to reflect the equipped item
-    }
-
-    public void OnUnequipButtonClicked()
-    {
-        if (_selectedItem == null)
-        {
-            Debug.LogWarning("No item selected. Please select an item first.");
-            return;
-        }
-        if (_selectedItem is Weapon weapon)
-        {
-            _selectedMech.UnequipWeapon(weapon);
-        }
-        else if (_selectedItem is Armor armor)
-        {
-            _selectedMech.UnequipArmor(armor);
-        }
-        else if (_selectedItem is EnergyShield shield)
-        {
-            _selectedMech.UnequipEnergyShield(shield);
-        }
-        _mechModEquipButton.SetActive(true);
-        _mechModUnequipButton.SetActive(false);
-        DisplayMechInfo(); // Refresh the displayed info
-        ShowMechModPanel(); // Refresh the mech mod panel to reflect the unequipped item
-    }
-
     public void UpdateMechName()
     {
         if (_selectedMech == null)
@@ -352,32 +367,6 @@ public class GarageUIManager : MonoBehaviour
         }
     }
 
-    private void ShowItemDetails()
-    {
-        //_mechModText.text = _selectedItem.GetDescription();
-        if (_selectedItem is Weapon weapon)
-        {
-            _weaponStatsDisplay.SetActive(true);
-            _weaponInfoDisplayInternal.DisplayWeaponInfo(weapon);
-            _armorStatsDisplay.SetActive(false);
-            _energyShieldStatsDisplay.SetActive(false);
-        }
-        else if (_selectedItem is Armor armor)
-        {
-            _weaponStatsDisplay.SetActive(false);
-            _armorStatsDisplay.SetActive(true);
-            _armorInfoDisplayInternal.DisplayArmorInfo(armor);
-            _energyShieldStatsDisplay.SetActive(false);
-        }
-        else if (_selectedItem is EnergyShield shield)
-        {
-            _weaponStatsDisplay.SetActive(false);
-            _armorStatsDisplay.SetActive(false);
-            _energyShieldStatsDisplay.SetActive(true);
-            _energyShieldInfoDisplayInternal.DisplayEnergyShieldInfo(shield);
-        }
-    }
-
     private void ShowColorPickerPanel(GameObject callingButton)
     {
         _colorPickerPanel.SetActive(true);
@@ -399,15 +388,14 @@ public class GarageUIManager : MonoBehaviour
     }
 
     private void OnHoverableItemTooltipEnter(GameObject go, Item item)
-    {
-        // Debug.Log($"OnHoverableItemTooltipEnter invoked for GameObject: {go.name}, Item: {item?.Name}");
-        // Create and display the tooltip for the hovered item to the right of the item
+    {   
         if (item == null)
         {
             return;
         } else if (item is Weapon weapon)
         {
             // Display weapon tooltip for item and for all weapons in mechs inventory
+            // Debug.Log($"Displaying tooltip for weapon: {weapon?.Name}");
             GameObject weaponTooltip = CreateWeaponTooltip(weapon);
             weaponTooltip.transform.SetParent(go.transform, false);
             weaponTooltip.transform.localPosition += new Vector3(go.GetComponent<RectTransform>().rect.width + 0.1f, 0, 0);
@@ -421,7 +409,13 @@ public class GarageUIManager : MonoBehaviour
                 GameObject weaponListtooltip = CreateWeaponTooltip(w);
                 // Position and show the tooltip as needed
                 weaponListtooltip.transform.SetParent(go.transform, false);
-                weaponListtooltip.transform.localPosition += new Vector3((go.GetComponent<RectTransform>().rect.width + 0.1f) * (i + 1), 0, 0);
+                float wOffsetX = go.GetComponent<RectTransform>().rect.width + 0.1f;
+                foreach (Transform child in go.transform)
+                {
+                    Debug.Log($"Child transform: {child.name}, Width: {child.GetComponent<RectTransform>().rect.width}");
+                    wOffsetX += child.GetComponent<RectTransform>().rect.width + 0.1f;
+                }
+                weaponListtooltip.transform.localPosition += new Vector3(wOffsetX, 0, 0);
             }
             
         }
@@ -436,7 +430,12 @@ public class GarageUIManager : MonoBehaviour
             if (armorInInventory == armor) return;
             GameObject armorInInventoryTooltip = CreateArmorTooltip(armorInInventory);
             armorInInventoryTooltip.transform.SetParent(go.transform, false);
-            armorInInventoryTooltip.transform.localPosition += new Vector3((go.GetComponent<RectTransform>().rect.width + 0.1f) * 2, 0, 0);
+            float aOffsetX = go.GetComponent<RectTransform>().rect.width + 0.1f;
+            foreach (Transform child in go.transform)
+            {
+                aOffsetX += child.GetComponent<RectTransform>().rect.width + 0.1f;
+            }
+            armorInInventoryTooltip.transform.localPosition += new Vector3(aOffsetX, 0, 0);
             
         }
         else if (item is EnergyShield shield)
@@ -450,10 +449,14 @@ public class GarageUIManager : MonoBehaviour
             if (shieldInInventory == shield) return;
             GameObject shieldInInventoryTooltip = CreateEnergyShieldTooltip(shieldInInventory);
             shieldInInventoryTooltip.transform.SetParent(go.transform, false);
-            shieldInInventoryTooltip.transform.localPosition += new Vector3((go.GetComponent<RectTransform>().rect.width + 0.1f) * 2, 0, 0);
+            float sOffsetX = go.GetComponent<RectTransform>().rect.width + 0.1f;
+            foreach (Transform child in go.transform)
+            {
+                sOffsetX += child.GetComponent<RectTransform>().rect.width + 0.1f;
+            }
+            shieldInInventoryTooltip.transform.localPosition += new Vector3(sOffsetX, 0, 0);
             
         }
-
     }
 
     private GameObject CreateWeaponTooltip(Weapon weapon)
@@ -462,43 +465,10 @@ public class GarageUIManager : MonoBehaviour
         GameObject tooltip = Instantiate(_hoverableItemTooltip);
         tooltip.name = "WeaponTooltip";
         // Add components and set up the tooltip as needed
-        StringBuilder sb = new StringBuilder();
-        sb.AppendLine(weapon.WeaponName.ToString());
-        sb.Append("Weight: ");
-        sb.AppendLine(weapon.Weight.ToString());
-        sb.Append("Slots: ");
-        sb.AppendLine(weapon.SlotsRequired.ToString());
-        sb.AppendLine();
-        if (!weapon.IsMelee)
-        {
-            sb.Append("Damage: ");
-            sb.AppendLine(weapon.Damage.ToString());
-            sb.Append("Ammo: ");
-            sb.AppendLine(weapon.MaxAmmo.ToString());
-            sb.Append("Fire Rate: ");
-            sb.AppendLine(weapon.FireRate.ToString());
-            sb.Append("Reload: ");
-            sb.AppendLine(weapon.ReloadTime.ToString());
-            sb.Append("Number of Shots: ");
-            sb.AppendLine(weapon.NumShots.ToString());
-            sb.Append("Point blank accuracy: ");
-            sb.AppendLine(weapon.PointBlankAccuracy.ToString());
-            sb.Append("Accuracy Dropoff: ");
-            sb.AppendLine(weapon.AccuracyDropoff.ToString());
-            sb.AppendLine();
-        }
-        sb.Append("Melee Damage: ");
-        sb.AppendLine(weapon.MeleeDamage.ToString());
-        sb.Append("MeleeRange: ");
-        sb.AppendLine(weapon.MeleeRange.ToString());
-        sb.Append("Melee Accuracy: ");
-        sb.AppendLine(weapon.MeleeAccuracy.ToString());
-        sb.Append("Swing Rate: ");
-        sb.AppendLine(weapon.SwingRate.ToString());
         TooltipScreenSpaceUI tooltipUI = tooltip.GetComponent<TooltipScreenSpaceUI>();
         if (tooltipUI == null)
             tooltipUI = tooltip.AddComponent<TooltipScreenSpaceUI>();
-        tooltipUI.DisplayTooltip(sb);
+        tooltipUI.DisplayTooltip(weapon.GetDescription());
         return tooltip;
     }
 
@@ -508,6 +478,10 @@ public class GarageUIManager : MonoBehaviour
         GameObject tooltip = Instantiate(_hoverableItemTooltip);
         tooltip.name = "ArmorTooltip";
         // Add components and set up the tooltip as needed
+        TooltipScreenSpaceUI tooltipUI = tooltip.GetComponent<TooltipScreenSpaceUI>();
+        if (tooltipUI == null)
+            tooltipUI = tooltip.AddComponent<TooltipScreenSpaceUI>();
+        tooltipUI.DisplayTooltip(armor.GetDescription());
         return tooltip;
     }
 
@@ -517,6 +491,10 @@ public class GarageUIManager : MonoBehaviour
         GameObject tooltip = Instantiate(_hoverableItemTooltip);
         tooltip.name = "EnergyShieldTooltip";
         // Add components and set up the tooltip as needed
+        TooltipScreenSpaceUI tooltipUI = tooltip.GetComponent<TooltipScreenSpaceUI>();
+        if (tooltipUI == null)
+            tooltipUI = tooltip.AddComponent<TooltipScreenSpaceUI>();
+        tooltipUI.DisplayTooltip(shield.GetDescription());
         return tooltip;
     }
 

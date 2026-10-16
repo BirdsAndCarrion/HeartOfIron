@@ -20,11 +20,13 @@ public class HoverableItemTooltip : MonoBehaviour, IPointerEnterHandler, IPointe
 
     public void OnPointerEnter(PointerEventData eventData)
     {
+        // Debug.Log($"Pointer entered on GameObject: {gameObject.name}, Item: {item?.Name}");
         EventRouter.OnHoverableItemTooltipEnter.Invoke(gameObject, item);
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
+        //Debug.Log($"Pointer exited on GameObject: {gameObject.name}, Item: {item?.Name}");
         EventRouter.OnHoverableItemTooltipExit.Invoke(gameObject);
     }
 }
