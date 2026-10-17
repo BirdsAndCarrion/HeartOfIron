@@ -131,7 +131,11 @@ public class Armor : Item
 
     public override string GetDescription()
     {
-        return $"{Name}: Type: {ArmorType}\n Resistance: {Resistance}\n Coverage: {Coverage}\n Defense Rating: {DefenseRating}\n Durability: {CurrentDurabilityR}/{MaxDurability} (Right)\n {CurrentDurabilityL}/{MaxDurability} (Left)";
+        if (armorType == ArmorType.Head || armorType == ArmorType.Torso)
+        {
+            return $"{Name}\n Weight: {Weight}\n Type: {ArmorType}\n Resistance: {MathF.Round(Resistance, 2)}\n Coverage: {MathF.Round(Coverage, 2)}\n Defense Rating: {MathF.Round(DefenseRating, 2)}\n Durability: {MathF.Round(CurrentDurabilityR, 2)}/{MathF.Round(MaxDurability, 2)}";
+        }
+        return $"{Name}\n Weight: {Weight}\n Type: {ArmorType}\n Resistance: {MathF.Round(Resistance, 2)}\n Coverage: {MathF.Round(Coverage, 2)}\n Defense Rating: {MathF.Round(DefenseRating, 2)}\n Durability: {MathF.Round(CurrentDurabilityR, 2)}/{MathF.Round(MaxDurability, 2)} (Right)\n {MathF.Round(CurrentDurabilityL, 2)}/{MathF.Round(MaxDurability, 2)} (Left)";
     }
 
     public override Item Clone()

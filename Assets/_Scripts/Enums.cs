@@ -58,8 +58,6 @@ namespace HeartOfIron.Enums
     {
         Weapon,
         Armor,
-        ArmorSet,
-        ShieldPlating,
         EnergyShield,
         Mech,
     }

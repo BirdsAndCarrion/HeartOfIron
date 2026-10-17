@@ -43,6 +43,10 @@ public class LabUIManager : MonoBehaviour
 
             text.text = item.Name;
             button.onClick.AddListener(() => OnResearchOptionSelected(item));
+            if (_selectedItem == item)
+            {
+                option.GetComponent<Image>().color = Color.green; // Highlight the selected research option
+            }
         }
     }
 

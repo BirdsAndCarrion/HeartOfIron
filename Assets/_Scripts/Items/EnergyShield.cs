@@ -85,7 +85,7 @@ public class EnergyShield : Item
 
     public override string GetDescription()
     {
-        return $"{Name}: Max Capacity: {MaxCapacity}\n Current Capacity: {CurrentCapacity}\n Recharge Rate: {RechargeRate}\n Recharge Delay: {RechargeDelay}";
+        return $"{Name}\n Weight: {Weight}\n Capacity: {MathF.Round(CurrentCapacity, 2)}/{MathF.Round(MaxCapacity, 2)}\n Recharge Rate: {MathF.Round(RechargeRate, 2)}\n Recharge Delay: {MathF.Round(RechargeDelay, 2)}";
     }
 
     public override Item Clone()

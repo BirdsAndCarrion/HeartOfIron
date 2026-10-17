@@ -60,7 +60,11 @@ public class Weapon : Item
 
     public override string GetDescription()
     {
-        return $"{Name}:\n Damage: {Damage}\n Ammo: {CurrentAmmo}/{MaxAmmo}\n Reload Time: {ReloadTime}s\n Fire Rate: {FireRate}s\n Shots: {NumShots}\n Slots Required: {SlotsRequired}";
+        if (IsMelee)
+        {
+            return $"{Name}:\n Weight: {Weight}\n Slots: {SlotsRequired}\n Type: {WeaponName}\n Melee Damage: {MeleeDamage}\n Swing Rate: {MathF.Round(SwingRate, 2)}s\n Melee Range: {MathF.Round(MeleeRange, 2)}\n Melee Accuracy: {MathF.Round(MeleeAccuracy, 2)}";
+        }
+        return $"{Name}:\n Weight: {Weight}\n Slots: {SlotsRequired}\n Type: {WeaponName}\n Damage: {Damage}\n Fire Rate: {MathF.Round(FireRate, 2)}s\n Shots: {NumShots}\n Point Blank Accuracy: {PointBlankAccuracy}\n Accuracy Dropoff: {AccuracyDropoff}\n Ammo: {MaxAmmo}\n\n Melee Damage: {MeleeDamage}\n Swing Rate: {MathF.Round(SwingRate, 2)}s\n Melee Range: {MathF.Round(MeleeRange, 2)}\n Melee Accuracy: {MathF.Round(MeleeAccuracy, 2)}";
     }
 
     public void UpdateCooldown(float deltaTime)

@@ -470,6 +470,7 @@ public static class EventRouter
     public static UnityEvent<GameObject> ROnHoverableItemTooltipExit = new UnityEvent<GameObject>();
     private static readonly Queue<UnityEvent<GameObject>> HoverableItemTooltipExitEventQueue = new Queue<UnityEvent<GameObject>>();
     private static bool isProcessingHoverableItemTooltipExitQueue = false;
+    private static int hoverableItemTooltipEnterCount = 0;
 
     public static void RegisterWithHub(HoverableItemTooltip hoverableItemTooltip)
     {
@@ -481,6 +482,8 @@ public static class EventRouter
         OnHoverableItemTooltipExit.RemoveListener(OnHoverableItemTooltipExitHandler);
         OnHoverableItemTooltipEnter.AddListener(OnHoverableItemTooltipEnterHandler);
         OnHoverableItemTooltipExit.AddListener(OnHoverableItemTooltipExitHandler);
+
+        hoverableItemTooltipEnterCount++;
     }
 
     public static void UnregisterFromHub(HoverableItemTooltip hoverableItemTooltip)
@@ -489,8 +492,12 @@ public static class EventRouter
         {
             return;
         }
-        OnHoverableItemTooltipEnter.RemoveListener(OnHoverableItemTooltipEnterHandler);
-        OnHoverableItemTooltipExit.RemoveListener(OnHoverableItemTooltipExitHandler);
+        hoverableItemTooltipEnterCount = Mathf.Max(hoverableItemTooltipEnterCount - 1, 0);
+        if (hoverableItemTooltipEnterCount == 0)
+        {
+            OnHoverableItemTooltipEnter.RemoveListener(OnHoverableItemTooltipEnterHandler);
+            OnHoverableItemTooltipExit.RemoveListener(OnHoverableItemTooltipExitHandler);
+        }
     }
 
     private static void OnHoverableItemTooltipEnterHandler(GameObject go, Item item)
