@@ -97,11 +97,7 @@ public class MechController : MonoBehaviour, ISelectable, IDamageable
         // Debug.Log($"{Mech.Name}: Mech Speed: {_mech.MaxSpeed} Current Speed: {_currentSpeed}, NavMeshAgent Speed: {_navMeshAgent.speed}");
         if (CombatManager.Instance != null && CombatManager.Instance.CombatState == CombatState.Playing)
         {
-            foreach (Weapon weapon in _mech.Inventory.Weapons)
-            {
-                if (weapon != null)
-                    weapon.UpdateCooldown(Time.deltaTime);
-            }
+            _mech.Inventory.UpdateCooldowns(Time.deltaTime);
             _moveTimer -= Time.deltaTime;
             if (_moveTimer <= 0f)
             {

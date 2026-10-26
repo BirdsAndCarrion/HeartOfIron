@@ -28,11 +28,11 @@ public class ActionMarker : MonoBehaviour, ISelectable
         _actionPair = new ActionPair(moveAction);
     }
 
-    public void Initialize(MechController sourceMech, MechController targetMech, List<Weapon> weapons)
+    public void Initialize(MechController sourceMech, MechController targetMech, List<MeleeAttack> attacks)
     {
         _id = Guid.NewGuid();
-        ChargeAction chargeAction = new ChargeAction(sourceMech, targetMech, weapons);
-        MeleeAction meleeAction = new MeleeAction(sourceMech, targetMech, weapons);
+        ChargeAction chargeAction = new ChargeAction(sourceMech, targetMech, attacks);
+        MeleeAction meleeAction = new MeleeAction(sourceMech, targetMech, attacks);
         _actionPair = new ActionPair(chargeAction, meleeAction);
     }
 

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 public class ReloadAction : AttackAction
 {
-    public ReloadAction(MechController sourceMech, List<Weapon> weapons) : base(ActionType.Reload, sourceMech, null, weapons)
+    public ReloadAction(MechController sourceMech, List<RangedAttack> attacks) : base(ActionType.Reload, sourceMech, null, attacks)
     {
     }
 
@@ -16,17 +16,25 @@ public class ReloadAction : AttackAction
             Debug.LogWarning($"ReloadAction cannot be executed because CanExecute() returned: {canExecuteResult}");
             return canExecuteResult;
         }
-        List<ActionResult> results = new List<ActionResult>();
-        foreach (Weapon w in Weapons)
+        List<RangedAttack> rangedAttacks = new List<RangedAttack>();
+        foreach (Attack a in Attacks)
         {
-            if (!w.CanReload())
+            if (a is RangedAttack rangedAttack)
             {
-                Debug.LogWarning($"{SourceMech.Mech.Name} cannot reload {w.Name} because it is on cooldown.");
+                rangedAttacks.Add(rangedAttack);
+            }
+        }
+        List<ActionResult> results = new List<ActionResult>();
+        foreach (RangedAttack r in rangedAttacks)
+        {
+            if (!r.IsReady())
+            {
+                Debug.LogWarning($"{SourceMech.Mech.Name} cannot reload {r.Weapon.Name} because it is on cooldown.");
                 results.Add(ActionResult.Retry);
                 continue;
             }
-            Debug.Log($"{SourceMech.Mech.Name} is reloading {w.Name}.");
-            w.Reload();
+            Debug.Log($"{SourceMech.Mech.Name} is reloading {r.Weapon.Name}.");
+            r.Reload();
             results.Add(ActionResult.Success);
         }
         if (results.Contains(ActionResult.Success))
@@ -38,14 +46,14 @@ public class ReloadAction : AttackAction
 
     public override ActionResult CanExecute()
     {
-        if (SourceMech == null || Weapons == null || Weapons.Count == 0)
+        if (SourceMech == null || Attacks == null || Attacks.Count == 0)
         {
-            Debug.LogWarning("ReloadAction cannot be executed because SourceMech or Weapons is null or empty.");
+            Debug.LogWarning("ReloadAction cannot be executed because SourceMech or Attacks is null or empty.");
             return ActionResult.NullInput;
         }
-        foreach (Weapon w in Weapons)
+        foreach (Attack a in Attacks)
         {
-            if (w == null)
+            if (a == null)
             {
                 return ActionResult.NullInput;
             }

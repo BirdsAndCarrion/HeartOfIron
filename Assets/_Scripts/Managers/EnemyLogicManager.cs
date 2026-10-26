@@ -387,13 +387,16 @@ public class EnemyLogicManager : MonoBehaviour
             if (edge.To.OccupyingMech != null && edge.To.OccupyingMech.Mech.Faction == Faction.Player && _enemyGraph.VisiblePlayerMechs.Contains(edge.To.OccupyingMech))
             {
                 float distance = Vector3.Distance(position, edge.To.Position);
+                Inventory inventory = enemyNode.OccupyingMech.Mech.Inventory;
                 for(int i = 0; i < enemyNode.OccupyingMech.Mech.Inventory.Weapons.Length; i++)
                 {
-                    Weapon weapon = enemyNode.OccupyingMech.Mech.Inventory.Weapons[i];
-                    float averageDamage = weapon.GetAverageDamage(distance);
-                    if (averageDamage > score)
+                    Weapon weapon = inventory.Weapons[i];
+                    float averageRangedDamage = inventory.WeaponToRangedAttackMap[weapon].GetAverageDamage(distance);
+                    float averageMeleeDamage = inventory.WeaponToMeleeAttackMap[weapon].GetAverageDamage(distance);
+                    float averageTotalDamage = averageRangedDamage + averageMeleeDamage;
+                    if (averageTotalDamage > score)
                     {
-                        score = averageDamage; // Update score to the highest average damage potential
+                        score = averageTotalDamage; // Update score to the highest average damage potential
                     }
                 }
             }
@@ -417,8 +420,10 @@ public class EnemyLogicManager : MonoBehaviour
                 for(int i = 0; i < edge.To.OccupyingMech.Mech.Inventory.Weapons.Length; i++)
                 {
                     Weapon weapon = edge.To.OccupyingMech.Mech.Inventory.Weapons[i];
-                    float averageDamage = weapon.GetAverageDamage(distance);
-                    score += averageDamage; // Accumulate the average damage potential from all player weapons
+                    float averageDamage = edge.To.OccupyingMech.Mech.Inventory.WeaponToRangedAttackMap[weapon].GetAverageDamage(distance);
+                    float averageMeleeDamage = edge.To.OccupyingMech.Mech.Inventory.WeaponToMeleeAttackMap[weapon].GetAverageDamage(distance);
+                    float averageTotalDamage = averageDamage + averageMeleeDamage;
+                    score += averageTotalDamage; // Accumulate the average damage potential from all player weapons
                 }
             }
         }
@@ -939,32 +944,32 @@ public class EnemyLogicManager : MonoBehaviour
         {
             // Target nearest targetable player mech
             Node nearestPlayerNode = graph.FindNearestPlayerNode(node.Position);
-            Weapon bestWeapon = node.OccupyingMech.Mech.Inventory.GetIdealRangedWeapon(Vector3.Distance(node.Position, nearestPlayerNode.Position));
-            if (bestWeapon == null)
+            RangedAttack bestRangedAttack = node.OccupyingMech.Mech.Inventory.GetIdealRangedAttack(Vector3.Distance(node.Position, nearestPlayerNode.Position));
+            if (bestRangedAttack == null)
             {
                 return null; // No weapon to use, so no action
-            } else if (bestWeapon.CanAttack(Vector3.Distance(node.Position, nearestPlayerNode.Position)))
+            } else if (bestRangedAttack.CanAttack(Vector3.Distance(node.Position, nearestPlayerNode.Position)))
             {
-                return new ShootAction(node.OccupyingMech, nearestPlayerNode.OccupyingMech, new List<Weapon> { bestWeapon });
+                return new ShootAction(node.OccupyingMech, nearestPlayerNode.OccupyingMech, new List<RangedAttack> { bestRangedAttack });
             } else
             {
-                return new ReloadAction(node.OccupyingMech, new List<Weapon> { bestWeapon });
+                return new ReloadAction(node.OccupyingMech, new List<RangedAttack> { bestRangedAttack });
             }
         };
 
         Func<Node, Graph, Action> StaticShootFunction = (node, graph) =>
         {
             Node nearestPlayerNode = graph.FindNearestPlayerNode(node.Position);
-            Weapon bestWeapon = node.OccupyingMech.Mech.Inventory.GetIdealRangedWeapon(Vector3.Distance(node.Position, nearestPlayerNode.Position));
-            if (bestWeapon == null)
+            RangedAttack bestRangedAttack = node.OccupyingMech.Mech.Inventory.GetIdealRangedAttack(Vector3.Distance(node.Position, nearestPlayerNode.Position));
+            if (bestRangedAttack == null)
             {
                 return null; // No weapon to use, so no action
-            } else if (bestWeapon.CanAttack(Vector3.Distance(node.Position, nearestPlayerNode.Position)))
+            } else if (bestRangedAttack.CanAttack(Vector3.Distance(node.Position, nearestPlayerNode.Position)))
             {
-                return new ShootAction(node.OccupyingMech, nearestPlayerNode.OccupyingMech, new List<Weapon> { bestWeapon });
+                return new ShootAction(node.OccupyingMech, nearestPlayerNode.OccupyingMech, new List<RangedAttack> { bestRangedAttack });
             } else
             {
-                return new ReloadAction(node.OccupyingMech, new List<Weapon> { bestWeapon });
+                return new ReloadAction(node.OccupyingMech, new List<RangedAttack> { bestRangedAttack });
             }
         };
 
@@ -999,16 +1004,16 @@ public class EnemyLogicManager : MonoBehaviour
         Func<Node, Graph, Action> TargetShootFunction = (node, graph) =>
         {
             Node nearestPlayerNode = graph.FindNearestPlayerNode(node.Position);
-            Weapon bestWeapon = node.OccupyingMech.Mech.Inventory.GetIdealRangedWeapon(Vector3.Distance(node.Position, nearestPlayerNode.Position));
-            if (bestWeapon == null)
+            RangedAttack bestRangedAttack = node.OccupyingMech.Mech.Inventory.GetIdealRangedAttack(Vector3.Distance(node.Position, nearestPlayerNode.Position));
+            if (bestRangedAttack == null)
             {
                 return null; // No weapon to use, so no action
-            } else if (bestWeapon.CanAttack(Vector3.Distance(node.Position, nearestPlayerNode.Position)))
+            } else if (bestRangedAttack.CanAttack(Vector3.Distance(node.Position, nearestPlayerNode.Position)))
             {
-                return new ShootAction(node.OccupyingMech, nearestPlayerNode.OccupyingMech, new List<Weapon> { bestWeapon });
+                return new ShootAction(node.OccupyingMech, nearestPlayerNode.OccupyingMech, new List<RangedAttack> { bestRangedAttack });
             } else
             {
-                return new ReloadAction(node.OccupyingMech, new List<Weapon> {bestWeapon});
+                return new ReloadAction(node.OccupyingMech, new List<RangedAttack> {bestRangedAttack});
             }
         };
 
@@ -1043,16 +1048,16 @@ public class EnemyLogicManager : MonoBehaviour
         Func<Node, Graph, Action> TeamShootFunction = (node, graph) =>
         {
             Node nearestPlayerNode = graph.FindNearestPlayerNode(node.Position);
-            Weapon bestWeapon = node.OccupyingMech.Mech.Inventory.GetIdealRangedWeapon(Vector3.Distance(node.Position, nearestPlayerNode.Position));
-            if (bestWeapon == null)
+            RangedAttack bestRangedAttack = node.OccupyingMech.Mech.Inventory.GetIdealRangedAttack(Vector3.Distance(node.Position, nearestPlayerNode.Position));
+            if (bestRangedAttack == null)
             {
                 return null; // No weapon to use, so no action
-            } else if (bestWeapon.CanAttack(Vector3.Distance(node.Position, nearestPlayerNode.Position)))
+            } else if (bestRangedAttack.CanAttack(Vector3.Distance(node.Position, nearestPlayerNode.Position)))
             {
-                return new ShootAction(node.OccupyingMech, nearestPlayerNode.OccupyingMech, new List<Weapon> { bestWeapon });
+                return new ShootAction(node.OccupyingMech, nearestPlayerNode.OccupyingMech, new List<RangedAttack> { bestRangedAttack });
             } else
             {
-                return new ReloadAction(node.OccupyingMech, new List<Weapon> { bestWeapon });
+                return new ReloadAction(node.OccupyingMech, new List<RangedAttack> { bestRangedAttack });
             }
         };
 
@@ -1102,10 +1107,10 @@ public class EnemyLogicManager : MonoBehaviour
 
         Func<Node, Graph, Action> RushFunction = (node, graph) =>
         {
-            Weapon bestWeapon = node.OccupyingMech.Mech.Inventory.GetIdealMeleeWeapon();
-            if (Vector3.Distance(node.Position, graph.FindNearestPlayerNode(node.Position).Position) < 100f && bestWeapon != null)
+            MeleeAttack bestMeleeAttack = node.OccupyingMech.Mech.Inventory.GetIdealMeleeAttack(Vector3.Distance(node.Position, graph.FindNearestPlayerNode(node.Position).Position));
+            if (Vector3.Distance(node.Position, graph.FindNearestPlayerNode(node.Position).Position) < 100f && bestMeleeAttack != null)
             {
-                return new ChargeAction(node.OccupyingMech, graph.FindNearestPlayerNode(node.Position).OccupyingMech, new List<Weapon> { bestWeapon });
+                return new ChargeAction(node.OccupyingMech, graph.FindNearestPlayerNode(node.Position).OccupyingMech, new List<MeleeAttack> { bestMeleeAttack });
             }
             return null;
         };
@@ -1128,10 +1133,10 @@ public class EnemyLogicManager : MonoBehaviour
 
         Func<Node, Graph, Action> HitAndRunFunction = (node, graph) =>
         {
-            Weapon bestWeapon = node.OccupyingMech.Mech.Inventory.GetIdealMeleeWeapon();
-            if (Vector3.Distance(node.Position, graph.FindNearestPlayerNode(node.Position).Position) < 100f && bestWeapon != null)
+            MeleeAttack bestMeleeAttack = node.OccupyingMech.Mech.Inventory.GetIdealMeleeAttack(Vector3.Distance(node.Position, graph.FindNearestPlayerNode(node.Position).Position));
+            if (Vector3.Distance(node.Position, graph.FindNearestPlayerNode(node.Position).Position) < 100f && bestMeleeAttack != null)
             {
-                return new ChargeAction(node.OccupyingMech, graph.FindNearestPlayerNode(node.Position).OccupyingMech, new List<Weapon> { bestWeapon });
+                return new ChargeAction(node.OccupyingMech, graph.FindNearestPlayerNode(node.Position).OccupyingMech, new List<MeleeAttack> { bestMeleeAttack });
             }
             return null;
         };
@@ -1179,10 +1184,10 @@ public class EnemyLogicManager : MonoBehaviour
 
         Func<Node, Graph, Action> PeelFunction = (node, graph) =>
         {
-            Weapon bestWeapon = node.OccupyingMech.Mech.Inventory.GetIdealMeleeWeapon();
-            if (Vector3.Distance(node.Position, graph.FindNearestPlayerNode(node.Position).Position) < 100f && bestWeapon != null)
+            MeleeAttack bestMeleeAttack = node.OccupyingMech.Mech.Inventory.GetIdealMeleeAttack(Vector3.Distance(node.Position, graph.FindNearestPlayerNode(node.Position).Position));
+            if (Vector3.Distance(node.Position, graph.FindNearestPlayerNode(node.Position).Position) < 100f && bestMeleeAttack != null)
             {
-                return new ChargeAction(node.OccupyingMech, graph.FindNearestPlayerNode(node.Position).OccupyingMech, new List<Weapon> { bestWeapon });
+                return new ChargeAction(node.OccupyingMech, graph.FindNearestPlayerNode(node.Position).OccupyingMech, new List<MeleeAttack> { bestMeleeAttack });
             }
             return null;
         };

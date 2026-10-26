@@ -58,6 +58,20 @@ public class Weapon : Item
         _meleeAccuracy = meleeAccuracy;
     }
 
+    public RangedAttack GetRangedAttack()
+    {
+        if (IsMelee)
+        {
+            return null; // Melee weapons do not have a ranged attack
+        } 
+        return new RangedAttack(this, _damage, _fireRate, _meleeRange, _pointBlankAccuracy, _accuracyDropoff, _numShots, _maxAmmo);
+    }
+
+    public MeleeAttack GetMeleeAttack()
+    {
+        return new MeleeAttack(this, _meleeDamage, _swingRate, _meleeRange, _meleeAccuracy, _slotsRequired);
+    }
+
     public override string GetDescription()
     {
         if (IsMelee)
@@ -65,99 +79,6 @@ public class Weapon : Item
             return $"{Name}:\n Weight: {Weight}\n Slots: {SlotsRequired}\n Type: {WeaponName}\n Melee Damage: {MeleeDamage}\n Swing Rate: {MathF.Round(SwingRate, 2)}s\n Melee Range: {MathF.Round(MeleeRange, 2)}\n Melee Accuracy: {MathF.Round(MeleeAccuracy, 2)}";
         }
         return $"{Name}:\n Weight: {Weight}\n Slots: {SlotsRequired}\n Type: {WeaponName}\n Damage: {Damage}\n Fire Rate: {MathF.Round(FireRate, 2)}s\n Shots: {NumShots}\n Point Blank Accuracy: {PointBlankAccuracy}\n Accuracy Dropoff: {AccuracyDropoff}\n Ammo: {MaxAmmo}\n\n Melee Damage: {MeleeDamage}\n Swing Rate: {MathF.Round(SwingRate, 2)}s\n Melee Range: {MathF.Round(MeleeRange, 2)}\n Melee Accuracy: {MathF.Round(MeleeAccuracy, 2)}";
-    }
-
-    public void UpdateCooldown(float deltaTime)
-    {
-        if (cooldownTime > 0)
-        {
-            cooldownTime -= deltaTime;
-            if (cooldownTime < 0)
-            {
-                cooldownTime = 0; // Ensure cooldown time doesn't go below zero
-            }
-        }
-    }
-
-    public void ConsumeAmmo(int amount)
-    {
-        if (amount <= 0)
-        {
-            Debug.LogWarning("Amount to consume must be greater than zero.");
-            return;
-        }
-
-        _currentAmmo -= amount;
-        if (_currentAmmo < 0)
-        {
-            _currentAmmo = 0; // Ensure current ammo doesn't go below zero
-        }
-        cooldownTime = FireRate; // Set cooldown time to fire rate after consuming ammo
-        Debug.Log($"{Name} consumed {amount} ammo. Current ammo: {_currentAmmo}/{_maxAmmo}");
-    }
-
-    public void SwingCooldown()
-    {
-        cooldownTime = SwingRate; // Set cooldown time to swing rate after a melee attack
-        Debug.Log($"{Name} is on swing cooldown for {SwingRate} seconds.");
-    }
-
-    public float CalculateSpread(float distance)
-    {
-        if (distance <= 0)
-        {
-            Debug.LogWarning("Distance must be greater than zero to calculate accuracy.");
-            return 0f;
-        }
-
-        float spread = 1f - PointBlankAccuracy + (AccuracyDropoff * distance);
-        return Mathf.Clamp(spread, 0f, 1f);
-    }
-
-    public void Reload()
-    {
-        _currentAmmo = _maxAmmo;
-        cooldownTime = ReloadTime; // Set cooldown time to reload time after reloading
-        Debug.Log($"{Name} is reloading for {ReloadTime} seconds.");
-        Debug.Log($"{Name} reloaded. Current ammo: {_currentAmmo}/{_maxAmmo}");
-    }
-
-    public bool CanAttack(float distance)
-    {
-        if (cooldownTime > 0)
-        {
-            Debug.LogWarning($"{Name} cannot attack because it is on cooldown for {cooldownTime} more seconds.");
-            return false;
-        }
-        if (distance > MeleeRange && _currentAmmo <= 0)
-        {
-            Debug.LogWarning($"{Name} cannot attack because the target is out of range and there are no shots available.");
-            return false;
-        }
-
-        return true;
-    }
-
-    public bool CanReload()
-    {
-        if (cooldownTime > 0)
-        {
-            Debug.LogWarning($"{Name} cannot reload because it is on cooldown for {cooldownTime} more seconds.");
-            return false;
-        }
-        return true;
-    }
-
-    public float GetAverageDamage(float distance)
-    {
-        if (distance < MeleeRange)
-        {
-            return MeleeDamage * MeleeAccuracy; // Average damage for melee attacks
-        }
-        float spread = CalculateSpread(distance);
-        float hitChance = 1f - spread; // Assuming hit chance is inversely proportional to spread
-        float averageDamage = Damage * hitChance;
-        return averageDamage;
     }
 
     public override Item Clone()

@@ -13,13 +13,13 @@ public class OverwatchScript : MonoBehaviour
             // Implement shooting logic here
             if (_self.Mech.Inventory != null)
             {
-                Weapon idealWeapon = _self.Mech.Inventory.GetIdealRangedWeapon(Vector3.Distance(_self.transform.position, enemy.transform.position));
-                if (idealWeapon != null && idealWeapon.CanAttack(Vector3.Distance(_self.transform.position, enemy.transform.position)))
+                RangedAttack idealAttack = _self.Mech.Inventory.GetIdealRangedAttack(Vector3.Distance(_self.transform.position, enemy.transform.position));
+                if (idealAttack != null && idealAttack.CanAttack(Vector3.Distance(_self.transform.position, enemy.transform.position)))
                 {
                     // Implement the attack logic using the ideal weapon
-                    Debug.Log($"{_self.Mech.Name} is attacking {enemy.Mech.Name} with {idealWeapon.Name}.");
+                    Debug.Log($"{_self.Mech.Name} is attacking {enemy.Mech.Name} with {idealAttack.Weapon.Name}.");
                     ActionMarker actionMarker = ActionMarkerAssembler.Instance.AssembleActionMarker(_self.transform.position, _self, false);
-                    ShootAction shootAction = new ShootAction(_self, enemy, new List<Weapon> { idealWeapon });
+                    ShootAction shootAction = new ShootAction(_self, enemy, new List<RangedAttack> { idealAttack });
                     actionMarker.SetSecondaryAction(shootAction);
                     _self.InsertActionMarkerAt(actionMarker, 0); // Insert the action marker at index 0 to ensure it is executed immediately
                 }

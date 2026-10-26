@@ -5,11 +5,11 @@ using HeartOfIron.Enums;
 public class ChargeAction : MovementAction
 {
 
-    private List<Weapon> _weapons;
+    private List<MeleeAttack> _attacks;
 
-    public ChargeAction(MechController sourceMech, MechController targetMech, List<Weapon> weapons) : base(ActionType.Charge, sourceMech, targetMech != null ? targetMech.transform.position : Vector3.zero, targetMech)
+    public ChargeAction(MechController sourceMech, MechController targetMech, List<MeleeAttack> attacks) : base(ActionType.Charge, sourceMech, targetMech != null ? targetMech.transform.position : Vector3.zero, targetMech)
     {
-        _weapons = weapons;
+        _attacks = attacks;
     }
 
     public override ActionResult Execute()
@@ -34,7 +34,7 @@ public class ChargeAction : MovementAction
             ActionMarker actionMarker = ActionMarkerAssembler.Instance.AssembleActionMarker(Destination, SourceMech);
             if (actionMarker != null)
             {
-                actionMarker.Initialize(SourceMech, TargetMech, _weapons);
+                actionMarker.Initialize(SourceMech, TargetMech, _attacks);
                 SourceMech.InsertActionMarkerAt(actionMarker, 0); // Insert the action marker at the front of the queue
                 SourceMech.UpdateMechState(MechState.Charging);
                 Debug.Log($"{SourceMech.Mech.Name}: ChargeAction initialized. ActionMarker created for charging towards {TargetMech.Mech.Name} at position {Destination}.");
@@ -51,9 +51,9 @@ public class ChargeAction : MovementAction
 
     public override ActionResult CanExecute()
     {
-        if (SourceMech == null || TargetMech == null || _weapons == null)
+        if (SourceMech == null || TargetMech == null || _attacks == null)
         {
-            Debug.LogWarning($"Cannot execute ChargeAction because the source mech, target mech, or weapons list is null.");
+            Debug.LogWarning($"Cannot execute ChargeAction because the source mech, target mech, or attacks list is null.");
             return ActionResult.NullInput; 
         }
 
