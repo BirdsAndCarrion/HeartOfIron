@@ -4,6 +4,8 @@ using TMPro;
 using HeartOfIron.Enums;
 using UnityEngine.UI;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Text;
 
 /// <summary>
 /// Manages the UI elements within the combat scene, including mech info displays, action selection menus, and combat feedback.
@@ -12,6 +14,11 @@ using System.Collections.Generic;
 /// </summary>
 public class CombatUIManager : MonoBehaviour
 {
+
+    private readonly int RANGED_WEAPON_INDEX = 0;
+    private readonly int MELEE_WEAPON_INDEX = 1;
+    private readonly int RANGED_TARGET_INDEX = 2;
+    private readonly int MELEE_TARGET_INDEX = 3;
 
     public static CombatUIManager Instance { get; private set; }
 
@@ -49,10 +56,19 @@ public class CombatUIManager : MonoBehaviour
 
     [Header("Pop-up Elements")]
     [SerializeField] private GameObject _popupPanel;
-    [SerializeField] private TextMeshProUGUI _popupText;
-    [SerializeField] private TMP_Dropdown _weaponDropdown;
-    [SerializeField] private TMP_Dropdown _targetDropdown;
-    [SerializeField] private Button _confirmButton;
+    //[SerializeField] private TextMeshProUGUI _popupText;
+    //[SerializeField] private TMP_Dropdown _weaponDropdown;
+    //[SerializeField] private TMP_Dropdown _targetDropdown;
+    [SerializeField] private GameObject _confirmButton;
+
+    [SerializeField] private GameObject _popupOptionButtonPrefab;
+    [SerializeField] private GameObject _currentSelectionsPanel;
+    [SerializeField] private GameObject _currentWeaponSelectionButton;
+    [SerializeField] private GameObject _currentTargetSelectionButton;
+    [SerializeField] private GameObject _optionsPanel;
+    [SerializeField] private float fadeDuration = 0.5f;
+    [SerializeField] private Color _popupOptionButtonColor;
+    [SerializeField] private Color _popupOptionButtonSelectedColor;
 
     [Header("Action Selection Elements")]
     [SerializeField] private GameObject _actionSelectionPanel;
@@ -112,6 +128,8 @@ public class CombatUIManager : MonoBehaviour
         // EventRouter.ROnDeploymentStarted.AddListener(TestEventRecieved);
         EventRouter.ROnCombatStateChanged.AddListener(HandleCombatStateChanged);
         EventRouter.ROnActionMarkerSelected.AddListener(OnSelected);
+        EventRouter.ROnHoverableMechControllerInteractionEnter.AddListener(OnHoverableMechControllerInteractionEnter);
+        EventRouter.ROnHoverableMechControllerInteractionExit.AddListener(OnHoverableMechControllerInteractionExit);
     }
 
     void OnDestroy()
@@ -122,6 +140,8 @@ public class CombatUIManager : MonoBehaviour
         // EventRouter.ROnDeploymentStarted.RemoveListener(TestEventRecieved);
         EventRouter.ROnCombatStateChanged.RemoveListener(HandleCombatStateChanged);
         EventRouter.ROnActionMarkerSelected.RemoveListener(OnSelected);
+        EventRouter.ROnHoverableMechControllerInteractionEnter.RemoveListener(OnHoverableMechControllerInteractionEnter);
+        EventRouter.ROnHoverableMechControllerInteractionExit.RemoveListener(OnHoverableMechControllerInteractionExit);
     }
     
     void Update()
@@ -429,317 +449,449 @@ public class CombatUIManager : MonoBehaviour
         _mechInfoPanel.SetActive(false);
     }
 
-    /// <summary>
-    /// Shows a popup message and updates the UI elements based on the message type.
-    /// </summary>
-    /// <param name="message">The message to be displayed in the popup.</param>
-    void ShowPopup(string message)
+    private void UpdateCurrentWeaponSelectionButton(string weaponName)
     {
-        _popupText.text = message;
-        switch (message)
-        {
-            case "Shoot":
-                _weaponDropdown.gameObject.SetActive(true);
-                _targetDropdown.gameObject.SetActive(true);
-                _weaponDropdown.ClearOptions();
-                _targetDropdown.ClearOptions();
-                
-                for (int i = 0; i < _selectedMechController.Mech.Inventory.Weapons.Length; i++)
-                {
-                    Weapon weapon = _selectedMechController.Mech.Inventory.Weapons[i];
-                    if (weapon != null && !weapon.IsMelee)
-                    {
-                        _weaponDropdown.options.Add(new TMP_Dropdown.OptionData(weapon.Name));
-                    }
-                }
-                if (_weaponDropdown.options.Count > 1)
-                {
-                    _weaponDropdown.options.Add(new TMP_Dropdown.OptionData("All"));
-                }
-                if (_weaponDropdown.options.Count > 0)
-                {
-                    _weaponDropdown.SetValueWithoutNotify(0);
-                }
-                _weaponDropdown.RefreshShownValue();
-                _weaponDropdown.onValueChanged.AddListener(delegate { UpdateTargetDropdownRanged(); });
-                UpdateTargetDropdownRanged();
-                _confirmButton.onClick.RemoveAllListeners();
-                _confirmButton.onClick.AddListener(() =>
-                {
-                    List<RangedAttack> shootingWeapons = new List<RangedAttack>();
-                    if (_weaponDropdown.options[_weaponDropdown.value].text == "All")
-                    {
-                        foreach (RangedAttack rangedAttack in _selectedMechController.Mech.Inventory.RangedAttacks)
-                        {
-                            if (rangedAttack != null)
-                            {
-                                shootingWeapons.Add(rangedAttack);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        RangedAttack selectedRangedAttack = DetermineRangedAttackByDropdownSelection();
-                        if (selectedRangedAttack != null)
-                        {
-                            shootingWeapons.Add(selectedRangedAttack);
-                        }
-                    }
-                    MechController targetMechController = CombatManager.Instance.EnemyMechs.Find(m => m.Mech.Name == _targetDropdown.options[_targetDropdown.value].text);
-                    ShootAction shootAction = new ShootAction(_selectedMechController, targetMechController, shootingWeapons);
-                    _selectedActionMarker.SetSecondaryAction(shootAction);
-                    ClosePanels();
-                });
-                break;
-            case "Melee":
-                _weaponDropdown.gameObject.SetActive(true);
-                _targetDropdown.gameObject.SetActive(true);
-                _weaponDropdown.ClearOptions();
-                _targetDropdown.ClearOptions();
-                for (int i = 0; i < _selectedMechController.Mech.Inventory.Weapons.Length; i++)
-                {
-                    Weapon weapon = _selectedMechController.Mech.Inventory.Weapons[i];
-                    if (weapon != null)
-                    {
-                        _weaponDropdown.options.Add(new TMP_Dropdown.OptionData(weapon.Name));
-                    }
-                }
-                if (_weaponDropdown.options.Count > 1)
-                {
-                    _weaponDropdown.options.Add(new TMP_Dropdown.OptionData("All"));
-                }
-                if (_weaponDropdown.options.Count > 0)
-                {
-                    _weaponDropdown.SetValueWithoutNotify(0);
-                }
-                _weaponDropdown.RefreshShownValue();
-                _weaponDropdown.onValueChanged.AddListener(delegate { UpdateTargetDropdownMelee(); });
-                UpdateTargetDropdownMelee();
-                _confirmButton.onClick.RemoveAllListeners();
-                _confirmButton.onClick.AddListener(() =>
-                {
-                    List<MeleeAttack> meleeWeapons = new List<MeleeAttack>();
-                    if (_weaponDropdown.options[_weaponDropdown.value].text == "All")
-                    {
-                        foreach (MeleeAttack meleeAttack in _selectedMechController.Mech.Inventory.MeleeAttacks)
-                        {
-                            if (meleeAttack != null)
-                            {
-                                meleeWeapons.Add(meleeAttack);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        MeleeAttack selectedMeleeAttack = DetermineMeleeAttackByDropdownSelection();
-                        if (selectedMeleeAttack != null)
-                        {
-                            meleeWeapons.Add(selectedMeleeAttack);
-                        }
-                    }
+        // Update the current weapon selection button with the specified weapon name
+        _currentWeaponSelectionButton.GetComponentInChildren<TMP_Text>().text = weaponName;
+    }
 
-                    MechController targetMechController = CombatManager.Instance.EnemyMechs.Find(m => m.Mech.Name == _targetDropdown.options[_targetDropdown.value].text);
-                    MeleeAction meleeAction = new MeleeAction(_selectedMechController, targetMechController, meleeWeapons);
+    private void UpdateCurrentTargetSelectionButton(string targetName)
+    {
+        // Update the current target selection button with the specified target name
+        _currentTargetSelectionButton.GetComponentInChildren<TMP_Text>().text = targetName;
+    }
+
+    private void UpdateCurrentSelectionsPanel()
+    {
+        AttackListMount attackListMount = _popupPanel.GetComponent<AttackListMount>();
+        if (attackListMount != null)
+        {
+            StringBuilder sb = new StringBuilder();
+            if (attackListMount.HasRangedAttacks())
+            {
+                foreach (RangedAttack attack in attackListMount.attacks)
+                {
+                    if (attack != null)
+                    {
+                        if (sb.Length > 0 && attack != attackListMount.attacks[0])
+                            sb.Append(", ");
+                        sb.Append(attack.Weapon.Name);
+                    }
+                }
+            }
+            if (attackListMount.HasMeleeAttacks())
+            {
+                foreach (MeleeAttack attack in attackListMount.meleeAttacks)
+                {
+                    if (attack != null)
+                    {
+                        if (sb.Length > 0 && attack != attackListMount.meleeAttacks[0])
+                            sb.Append(", ");
+                        sb.Append(attack.Weapon.Name);
+                    }
+                }
+                if (sb.Length == 0)
+                    sb.Append("None");
+            }
+            UpdateCurrentSelectionsPanel(
+                sb.ToString(),
+                attackListMount.target != null ? attackListMount.target.name : "None"
+            );
+        }
+    }
+
+    private void UpdateCurrentSelectionsPanel(string weaponName, string targetName)
+    {
+        UpdateCurrentWeaponSelectionButton(weaponName);
+        UpdateCurrentTargetSelectionButton(targetName);
+    }
+
+    private void EnableConfirmButton(bool enable)
+    {
+        _confirmButton.GetComponent<Button>().interactable = enable;
+        if (enable)
+        {
+            _confirmButton.GetComponent<Button>().onClick.AddListener(async () => await OnConfirmButtonClicked());
+        }
+        else
+        {
+            _confirmButton.GetComponent<Button>().onClick.RemoveAllListeners();
+        }
+    }
+
+    private async Task OnConfirmButtonClicked()
+    {
+        AttackListMount attackListMount = _popupPanel.GetComponent<AttackListMount>();
+        switch (attackListMount.actionType)
+        {
+            case ActionType.Shoot:
+                // Handle shoot action confirmation
+                List<RangedAttack> rangedAttacks = attackListMount.attacks;
+                MechController target = attackListMount.target;
+                if (rangedAttacks != null && rangedAttacks.Count > 0 && target != null)
+                {
+                    ShootAction shootAction = new ShootAction(_selectedMechController, target, rangedAttacks);
+                    _selectedActionMarker.SetSecondaryAction(shootAction);
+                    await ClosePanels();
+                }
+                break;
+            case ActionType.Melee:
+                // Handle melee action confirmation
+                List<MeleeAttack> meleeAttacks = attackListMount.meleeAttacks;
+                MechController mTarget = attackListMount.target;
+                if (meleeAttacks != null && meleeAttacks.Count > 0 && mTarget != null)
+                {
+                    MeleeAction meleeAction = new MeleeAction(_selectedMechController, mTarget, meleeAttacks);
                     _selectedActionMarker.SetSecondaryAction(meleeAction);
-                    ClosePanels();
-                });
+                    await ClosePanels();
+                }
                 break;
-            case "Reload":
-                _weaponDropdown.gameObject.SetActive(true);
-                _targetDropdown.gameObject.SetActive(false);
-                _weaponDropdown.ClearOptions();
-                for (int i = 0; i < _selectedMechController.Mech.Inventory.Weapons.Length; i++)
+            case ActionType.Reload:
+                // Handle reload action confirmation
+                List<RangedAttack> rAttacks = attackListMount.attacks;
+                if (rAttacks != null && rAttacks.Count > 0)
                 {
-                    Weapon weapon = _selectedMechController.Mech.Inventory.Weapons[i];
-                    if (weapon != null && weapon.CurrentAmmo < weapon.MaxAmmo && !weapon.IsMelee)
-                    {
-                        _weaponDropdown.options.Add(new TMP_Dropdown.OptionData(weapon.Name));
-                    }
-                }
-                if (_weaponDropdown.options.Count > 1)
-                {
-                    _weaponDropdown.options.Add(new TMP_Dropdown.OptionData("All"));
-                }
-                if (_weaponDropdown.options.Count > 0)
-                {
-                    _weaponDropdown.SetValueWithoutNotify(0);
-                }
-                _weaponDropdown.RefreshShownValue();
-                _confirmButton.onClick.RemoveAllListeners();
-                _confirmButton.onClick.AddListener(() =>
-                {
-                    List<RangedAttack> weaponsToReload = new List<RangedAttack>();
-                    if (_weaponDropdown.options[_weaponDropdown.value].text == "All")
-                    {
-                        foreach (RangedAttack rangedAttack in _selectedMechController.Mech.Inventory.RangedAttacks)
-                        {
-                            if (rangedAttack != null && rangedAttack.Weapon.CurrentAmmo < rangedAttack.Weapon.MaxAmmo)
-                            {
-                                weaponsToReload.Add(rangedAttack);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        RangedAttack selectedRangedAttack = Array.Find(_selectedMechController.Mech.Inventory.RangedAttacks.ToArray(), ra => ra != null && ra.Weapon.Name == _weaponDropdown.options[_weaponDropdown.value].text);
-                        if (selectedRangedAttack != null)
-                        {
-                            weaponsToReload.Add(selectedRangedAttack);
-                        }
-                    }
-                    ReloadAction reloadAction = new ReloadAction(_selectedMechController, weaponsToReload);
+                    ReloadAction reloadAction = new ReloadAction(_selectedMechController, rAttacks);
                     _selectedActionMarker.SetSecondaryAction(reloadAction);
-                    ClosePanels();
-                });
+                    await ClosePanels();
+                }
                 break;
-            case "Charge":
-                _weaponDropdown.gameObject.SetActive(true);
-                _targetDropdown.gameObject.SetActive(true);
-                _weaponDropdown.ClearOptions();
-                _targetDropdown.ClearOptions();
-                for (int i = 0; i < _selectedMechController.Mech.Inventory.Weapons.Length; i++)
+            case ActionType.Charge:
+                // Handle charge action confirmation
+                List<MeleeAttack> chargeAttacks = attackListMount.meleeAttacks;
+                MechController cTarget = attackListMount.target;
+                if (chargeAttacks != null && chargeAttacks.Count > 0 && cTarget != null)
                 {
-                    Weapon weapon = _selectedMechController.Mech.Inventory.Weapons[i];
-                    if (weapon != null && weapon.IsMelee)
-                    {
-                        _weaponDropdown.options.Add(new TMP_Dropdown.OptionData(weapon.Name));
-                    }
-                }
-                if (_weaponDropdown.options.Count > 1)
-                {
-                    _weaponDropdown.options.Add(new TMP_Dropdown.OptionData("All"));
-                }
-                if (_weaponDropdown.options.Count > 0)
-                {
-                    _weaponDropdown.SetValueWithoutNotify(0);
-                }
-                _weaponDropdown.RefreshShownValue();
-                _weaponDropdown.onValueChanged.AddListener(delegate { UpdateTargetDropdownRanged(); });
-                UpdateTargetDropdownRanged();
-                _confirmButton.onClick.RemoveAllListeners();
-                _confirmButton.onClick.AddListener(() =>
-                {
-                    List<MeleeAttack> weaponsToCharge = new List<MeleeAttack>();
-                    if (_weaponDropdown.options[_weaponDropdown.value].text == "All")
-                    {
-                        foreach (MeleeAttack attack in _selectedMechController.Mech.Inventory.MeleeAttacks)
-                        {
-                            if (attack != null)
-                            {
-                                weaponsToCharge.Add(attack);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        MeleeAttack selectedAttack = DetermineMeleeAttackByDropdownSelection();
-                        if (selectedAttack != null)
-                        {
-                            weaponsToCharge.Add(selectedAttack);
-                        }
-                    }
-                    MechController targetMechController = CombatManager.Instance.GetVisibleEnemyMechs().Find(m => m.Mech.Name == _targetDropdown.options[_targetDropdown.value].text);
-                    ChargeAction chargeAction = new ChargeAction(_selectedMechController, targetMechController, weaponsToCharge);
+                    ChargeAction chargeAction = new ChargeAction(_selectedMechController, cTarget, chargeAttacks);
                     _selectedActionMarker.SetSecondaryAction(chargeAction);
-                    ClosePanels();
-                });
+                    await ClosePanels();
+                }
+                break;
+            case ActionType.Move:
+                // Handle move action confirmation
+                await ClosePanels();
+                break;
+        }
+    }
+
+    private void EnableTargetSelectionButton(bool enable)
+    {
+        _currentTargetSelectionButton.GetComponent<Button>().interactable = enable;
+    }
+
+    private void ActivateTargetSelectionButton(bool activate)
+    {
+        _currentTargetSelectionButton.SetActive(activate);
+    }
+
+    private async Task ShowOptionsPanel(int showOptionsType)
+    {
+        Vector3 originalPosition = _optionsPanel.transform.position;
+        Vector3 targetPosition = originalPosition + new Vector3(_optionsPanel.GetComponent<RectTransform>().rect.width / 2 + _popupPanel.GetComponent<RectTransform>().rect.width / 2 + 0.5f, 0f, 0f);
+        _optionsPanel.SetActive(true);
+        float currentFade = 1f;
+        while (currentFade > 0f)
+        {
+            currentFade -= Time.deltaTime / fadeDuration;
+            _optionsPanel.transform.position = Vector3.Lerp(originalPosition, targetPosition, 1f - currentFade);
+            await Task.Yield();
+        }
+        switch (showOptionsType)
+        {
+            case 0:
+                UpdateOptionsPanelRangedWeapons();
+                break;
+            case 1:
+                UpdateOptionsPanelMeleeWeapons();
+                break;
+            case 2:
+                UpdateOptionsPanelRangedTargets();
+                break;
+            case 3:
+                UpdateOptionsPanelMeleeTargets();
+                break;
+        }
+    }
+
+    private async Task HideOptionsPanel()
+    {
+        Vector3 originalPosition = _optionsPanel.transform.position;
+        Vector3 targetPosition = _popupPanel.transform.position;
+        _optionsPanel.SetActive(true);
+        float currentFade = 1f;
+        while (currentFade > 0f)
+        {
+            currentFade -= Time.deltaTime / fadeDuration;
+            _optionsPanel.transform.position = Vector3.Lerp(originalPosition, targetPosition, 1f - currentFade);
+            await Task.Yield();
+        }
+        _optionsPanel.SetActive(false);
+    }
+
+    public void UpdateOptionsPanelRangedWeapons()
+    {
+        List<RangedAttack> rangedAttacks = _selectedMechController.Mech.Inventory.RangedAttacks;
+        // Clear existing options in the options panel
+        foreach (Transform child in _optionsPanel.transform)
+        {
+            Destroy(child.gameObject);
+        }
+        foreach (RangedAttack rangedAttack in rangedAttacks)
+        {
+            GameObject option = Instantiate(_popupOptionButtonPrefab, _optionsPanel.transform);
+            option.GetComponentInChildren<TMP_Text>().text = rangedAttack.Weapon.Name;
+            option.GetComponent<Button>().onClick.AddListener(() => OnRangedWeaponSelected(option, rangedAttack));
+        }
+
+    }
+
+    private void OnRangedWeaponSelected(GameObject option, RangedAttack rangedAttack)
+    {
+        AttackListMount attackListMount = _popupPanel.GetComponent<AttackListMount>();
+        attackListMount.AddRangedAttack(rangedAttack);
+        UpdateCurrentSelectionsPanel();
+        option.GetComponent<Image>().color = _popupOptionButtonSelectedColor;
+        option.GetComponent<Button>().onClick.RemoveAllListeners();
+        option.GetComponent<Button>().onClick.AddListener(() => OnRangedWeaponUnSelected(option, rangedAttack));
+        if (_currentTargetSelectionButton.activeInHierarchy)
+        {
+            EnableTargetSelectionButton(true);
+        } else
+        {
+            EnableConfirmButton(true);
+        }
+    }
+
+    private void OnRangedWeaponUnSelected(GameObject option, RangedAttack rangedAttack)
+    {
+        AttackListMount attackListMount = _popupPanel.GetComponent<AttackListMount>();
+        attackListMount.RemoveRangedAttack(rangedAttack);
+        UpdateCurrentSelectionsPanel();
+        option.GetComponent<Image>().color = _popupOptionButtonColor;
+        option.GetComponent<Button>().onClick.RemoveAllListeners();
+        option.GetComponent<Button>().onClick.AddListener(() => OnRangedWeaponSelected(option, rangedAttack));
+        if (attackListMount.attacks.Count <= 0 && _currentTargetSelectionButton.activeInHierarchy)
+        {
+            EnableTargetSelectionButton(false);
+        } else if (attackListMount.attacks.Count <= 0)
+        {
+            EnableConfirmButton(false);
+        }
+    }
+
+    public void UpdateOptionsPanelMeleeWeapons()
+    {
+        List<MeleeAttack> meleeAttacks = _selectedMechController.Mech.Inventory.MeleeAttacks;
+        // Clear existing options in the options panel
+        foreach (Transform child in _optionsPanel.transform)
+        {
+            Destroy(child.gameObject);
+        }
+        foreach (MeleeAttack meleeAttack in meleeAttacks)
+        {
+            GameObject option = Instantiate(_popupOptionButtonPrefab, _optionsPanel.transform);
+            option.GetComponentInChildren<TMP_Text>().text = meleeAttack.Weapon.Name;
+            option.GetComponent<Button>().onClick.AddListener(() => OnMeleeWeaponSelected(option, meleeAttack));
+        }
+    }
+
+    private void OnMeleeWeaponSelected(GameObject option, MeleeAttack meleeAttack)
+    {
+        AttackListMount attackListMount = _popupPanel.GetComponent<AttackListMount>();
+        attackListMount.AddMeleeAttack(meleeAttack);
+        UpdateCurrentSelectionsPanel();
+        option.GetComponent<Image>().color = _popupOptionButtonSelectedColor;
+        option.GetComponent<Button>().onClick.RemoveAllListeners();
+        option.GetComponent<Button>().onClick.AddListener(() => OnMeleeWeaponUnSelected(option, meleeAttack));
+        if (_currentTargetSelectionButton.activeInHierarchy)
+        {
+            EnableTargetSelectionButton(true);
+        } else
+        {
+            EnableConfirmButton(true);
+        }
+    }
+
+    private void OnMeleeWeaponUnSelected(GameObject option, MeleeAttack meleeAttack)
+    {
+        AttackListMount attackListMount = _popupPanel.GetComponent<AttackListMount>();
+        attackListMount.RemoveMeleeAttack(meleeAttack);
+        UpdateCurrentSelectionsPanel();
+        option.GetComponent<Image>().color = _popupOptionButtonColor;
+        option.GetComponent<Button>().onClick.RemoveAllListeners();
+        option.GetComponent<Button>().onClick.AddListener(() => OnMeleeWeaponSelected(option, meleeAttack));
+        if (attackListMount.meleeAttacks.Count <= 0 && _currentTargetSelectionButton.activeInHierarchy)
+        {
+            EnableTargetSelectionButton(false);
+        } else if (attackListMount.meleeAttacks.Count <= 0)
+        {
+            EnableConfirmButton(false);
+        }
+    }
+
+    private void UpdateOptionsPanelRangedTargets()
+    {
+        foreach (Transform child in _optionsPanel.transform)
+        {
+            Destroy(child.gameObject);
+        }
+        List<MechController> potentialTargets = CombatManager.Instance.GetVisibleEnemyMechs();
+        foreach (MechController target in potentialTargets)
+        {
+            GameObject option = Instantiate(_popupOptionButtonPrefab, _optionsPanel.transform);
+            option.GetComponentInChildren<TMP_Text>().text = target.Mech.Name;
+            option.GetComponent<Button>().onClick.AddListener(() => OnTargetSelected(option, target));
+            option.AddComponent<HoverableMechControllerInteraction>().MechController = target;
+        }
+    }
+
+    private void UpdateOptionsPanelMeleeTargets()
+    {
+        foreach (Transform child in _optionsPanel.transform)
+        {
+            Destroy(child.gameObject);
+        }
+        List<MechController> potentialTargets = CombatManager.Instance.GetVisibleEnemyMechs();
+        foreach (MechController target in potentialTargets)
+        {
+            if (!IsInMeleeRange(target))
+            {
+                continue;
+            }
+            GameObject option = Instantiate(_popupOptionButtonPrefab, _optionsPanel.transform);
+            option.GetComponentInChildren<TMP_Text>().text = target.Mech.Name;
+            option.GetComponent<Button>().onClick.AddListener(() => OnTargetSelected(option, target));
+            option.AddComponent<HoverableMechControllerInteraction>().MechController = target;
+        }
+    }
+
+    private void OnTargetHovered(MechController target)
+    {
+        target.OnHovered();
+    }
+
+    private void OnTargetExited(MechController target)
+    {
+        target.OnHoverExit();
+    }
+
+    private void OnHoverableMechControllerInteractionEnter(GameObject go, MechController mechController)
+    {
+        OnTargetHovered(mechController);
+    }
+
+    private void OnHoverableMechControllerInteractionExit(GameObject go, MechController mechController)
+    {
+        OnTargetExited(mechController);
+    }
+
+    private void OnTargetSelected(GameObject option, MechController target)
+    {
+        AttackListMount attackListMount = _popupPanel.GetComponent<AttackListMount>();
+        attackListMount.target = target;
+        foreach (Transform child in _optionsPanel.transform)
+        {
+            child.GetComponent<Image>().color = _popupOptionButtonColor;
+        }
+        option.GetComponent<Image>().color = _popupOptionButtonSelectedColor;
+        UpdateCurrentSelectionsPanel();
+        EnableConfirmButton(true);
+    }
+
+    private bool IsInMeleeRange(MechController target)
+    {
+        if ((_selectedMechController == null && _selectedActionMarker == null) || target == null)
+            return false;
+        AttackListMount attackListMount = _popupPanel.GetComponent<AttackListMount>();
+        if (_selectedMechController != null && _selectedActionMarker == null)
+        {
+            float distance = Vector3.Distance(_selectedMechController.transform.position, target.transform.position);
+            return distance <= attackListMount.GetMinimumMeleeRange();
+        } else if (_selectedActionMarker != null && _selectedMechController == null)
+        {
+            float distance = Vector3.Distance(_selectedActionMarker.transform.position, target.transform.position);
+            return distance <= attackListMount.GetMinimumMeleeRange();
+        }
+        return false;
+    }
+
+
+    public async Task ShowPopup(ActionType actionType)
+    {
+        Vector3 originalPosition = _popupPanel.transform.position;
+        // Move the popup panel in the negative x direction by half its width, plus half of action selection panels width, plus 0.5f for padding
+        Vector3 targetPosition = originalPosition - new Vector3(_popupPanel.GetComponent<RectTransform>().rect.width / 2 + _actionSelectionPanel.GetComponent<RectTransform>().rect.width / 2 + 0.5f, 0f, 0f);
+        _popupPanel.SetActive(true);
+        float currentFade = 1f;
+        while (currentFade > 0f)
+        {
+            currentFade -= Time.deltaTime / fadeDuration;
+            _popupPanel.transform.position = Vector3.Lerp(originalPosition, targetPosition, 1f - currentFade);
+            await Task.Yield();
+        }
+        _popupPanel.GetComponent<AttackListMount>().actionType = actionType;
+        switch (actionType)
+        {
+            case ActionType.Shoot:
+                UpdateCurrentSelectionsPanel("None", "None");
+                ActivateTargetSelectionButton(true);
+                EnableTargetSelectionButton(false);
+                EnableConfirmButton(false);
+                _currentWeaponSelectionButton.GetComponent<Button>().onClick.RemoveAllListeners();
+                _currentWeaponSelectionButton.GetComponent<Button>().onClick.AddListener(async () => await ShowOptionsPanel(RANGED_WEAPON_INDEX));
+                _currentTargetSelectionButton.GetComponent<Button>().onClick.RemoveAllListeners();
+                _currentTargetSelectionButton.GetComponent<Button>().onClick.AddListener(async () => await ShowOptionsPanel(RANGED_TARGET_INDEX));
+                break;
+            case ActionType.Melee:
+                UpdateCurrentSelectionsPanel("None", "None");
+                ActivateTargetSelectionButton(true);
+                EnableTargetSelectionButton(false);
+                EnableConfirmButton(false);
+                _currentWeaponSelectionButton.GetComponent<Button>().onClick.RemoveAllListeners();
+                _currentWeaponSelectionButton.GetComponent<Button>().onClick.AddListener(async () => await ShowOptionsPanel(MELEE_WEAPON_INDEX));
+                _currentTargetSelectionButton.GetComponent<Button>().onClick.RemoveAllListeners();
+                _currentTargetSelectionButton.GetComponent<Button>().onClick.AddListener(async () => await ShowOptionsPanel(MELEE_TARGET_INDEX));
+                break;
+            case ActionType.Reload:
+                UpdateCurrentSelectionsPanel("None", "None");
+                EnableTargetSelectionButton(false);
+                ActivateTargetSelectionButton(false);
+                EnableConfirmButton(false);
+                _currentWeaponSelectionButton.GetComponent<Button>().onClick.RemoveAllListeners();
+                _currentWeaponSelectionButton.GetComponent<Button>().onClick.AddListener(async () => await ShowOptionsPanel(RANGED_WEAPON_INDEX));
+                break;
+            case ActionType.Charge:
+                UpdateCurrentSelectionsPanel("None", "None");
+                ActivateTargetSelectionButton(true);
+                EnableTargetSelectionButton(false);
+                EnableConfirmButton(false);
+                _currentWeaponSelectionButton.GetComponent<Button>().onClick.RemoveAllListeners();
+                _currentWeaponSelectionButton.GetComponent<Button>().onClick.AddListener(async () => await ShowOptionsPanel(MELEE_WEAPON_INDEX));
+                _currentTargetSelectionButton.GetComponent<Button>().onClick.RemoveAllListeners();
+                _currentTargetSelectionButton.GetComponent<Button>().onClick.AddListener(async () => await ShowOptionsPanel(RANGED_TARGET_INDEX));
                 break;
             default:
-                _weaponDropdown.gameObject.SetActive(false);
-                _targetDropdown.gameObject.SetActive(false);
+                UpdateCurrentSelectionsPanel("None", "None");
+                ActivateTargetSelectionButton(false);
+                EnableTargetSelectionButton(false);
+                EnableConfirmButton(false);
                 break;
         }
-        _popupPanel.SetActive(true);
-    }
-
-    /// <summary>
-    /// Updates the target dropdown for ranged attacks based on visible enemy mechs.
-    /// </summary>
-    /// <remarks>
-    /// This method clears the current options in the target dropdown and populates it with the names of all visible enemy mechs.
-    /// </remarks>
-    private void UpdateTargetDropdownRanged()
-    {
-        _targetDropdown.ClearOptions();
-        var enemyMechs = CombatManager.Instance.GetVisibleEnemyMechs();
-        var options = new List<string>();
-        foreach (var enemyMech in enemyMechs)
-        {
-            options.Add(enemyMech.Mech.Name);
-        }
-        _targetDropdown.AddOptions(options);
-    }
-
-    /// <summary>
-    /// Updates the target dropdown for melee attacks based on visible enemy mechs within melee range.
-    /// </summary>
-    /// <remarks>
-    /// This method clears the current options in the target dropdown and populates it with the names of all visible enemy mechs that are within melee range of the selected mech or action marker.
-    /// </remarks>
-    private void UpdateTargetDropdownMelee()
-    {
-        _targetDropdown.ClearOptions();
-        var enemyMechs = CombatManager.Instance.GetVisibleEnemyMechs();
-        var options = new List<string>();
-        float meleeRange = DetermineMeleeRangeByDropdownSelection();
-        foreach (var enemyMech in enemyMechs)
-        {
-            if (_selectedActionMarker != null && Vector3.Distance(_selectedActionMarker.transform.position, enemyMech.transform.position) <= meleeRange)
-            {
-                options.Add(enemyMech.Mech.Name);
-            } else if (_selectedMechController != null && Vector3.Distance(_selectedMechController.transform.position, enemyMech.transform.position) <= meleeRange)
-            {
-                options.Add(enemyMech.Mech.Name);
-            }
-        }
-        _targetDropdown.AddOptions(options);
-    }
-
-    /// <summary>
-    /// Determines the weapon selected in the weapon dropdown.
-    /// </summary>
-    /// <returns>The weapon corresponding to the selected option in the weapon dropdown, or null if no valid weapon is selected.</returns>
-    private Weapon DetermineWeaponByDropdownSelection()
-    {
-        Weapon selectedWeapon = Array.Find(_selectedMechController.Mech.Inventory.Weapons, w => w != null && w.Name == _weaponDropdown.options[_weaponDropdown.value].text);
-        return selectedWeapon;
-    }
-
-    /// <summary>
-    /// Determines the ranged attack associated with the selected weapon in the weapon dropdown.
-    /// </summary>
-    /// <returns>The ranged attack corresponding to the selected weapon, or null if no valid ranged attack is found.</returns>
-    private RangedAttack DetermineRangedAttackByDropdownSelection()
-    {
-        Weapon selectedWeapon = DetermineWeaponByDropdownSelection();
-        return selectedWeapon != null && _selectedMechController.Mech.Inventory.WeaponToRangedAttackMap.ContainsKey(selectedWeapon) ? _selectedMechController.Mech.Inventory.WeaponToRangedAttackMap[selectedWeapon] : null;
-    }
-
-    /// <summary>
-    /// Determines the melee attack associated with the selected weapon in the weapon dropdown.
-    /// </summary>
-    /// <returns>The melee attack corresponding to the selected weapon, or null if no valid melee attack is found.</returns>
-    private MeleeAttack DetermineMeleeAttackByDropdownSelection()
-    {
-        Weapon selectedWeapon = DetermineWeaponByDropdownSelection();
-        return selectedWeapon != null && _selectedMechController.Mech.Inventory.WeaponToMeleeAttackMap.ContainsKey(selectedWeapon) ? _selectedMechController.Mech.Inventory.WeaponToMeleeAttackMap[selectedWeapon] : null;
-    }
-
-    /// <summary>
-    /// Determines the melee range of the selected weapon in the weapon dropdown.
-    /// </summary>
-    /// <returns>The melee range of the selected weapon, or 0 if no valid weapon is selected.</returns>
-    private float DetermineMeleeRangeByDropdownSelection()
-    {
-        Weapon selectedWeapon = DetermineWeaponByDropdownSelection();
-        return selectedWeapon != null ? selectedWeapon.MeleeRange : 0f;
     }
 
     /// <summary>
     /// Hides the popup panel.
     /// </summary>
-    void HidePopup()
+    async Task HidePopup()
     {
+        await HideOptionsPanel();
+        float currentFade = 1f;
+        while (currentFade > 0f)
+        {
+            currentFade -= Time.deltaTime / fadeDuration;
+            _popupPanel.transform.position = Vector3.Lerp(_popupPanel.transform.position, new Vector3(_actionSelectionPanel.transform.position.x, _popupPanel.transform.position.y, _popupPanel.transform.position.z), 1f - currentFade);
+            await Task.Yield();
+        }
         _popupPanel.SetActive(false);
     }
 
@@ -762,73 +914,73 @@ public class CombatUIManager : MonoBehaviour
     /// <summary>
     /// Handles the event when the shoot button is clicked.
     /// </summary>
-    public void OnShootButtonClicked()
+    public async Task OnShootButtonClicked()
     {
         Debug.Log("Shoot button clicked");
-        ShowPopup("Shoot");
+        await ShowPopup(ActionType.Shoot);
     }
 
     /// <summary>
     /// Handles the event when the melee button is clicked.
     /// </summary>
-    public void OnMeleeButtonClicked()
+    public async Task OnMeleeButtonClicked()
     {
         Debug.Log("Melee button clicked");
-        ShowPopup("Melee");
+        await ShowPopup(ActionType.Melee);
     }
 
     /// <summary>
     /// Handles the event when the reload button is clicked.
     /// </summary>
-    public void OnReloadButtonClicked()
+    public async Task OnReloadButtonClicked()
     {
         Debug.Log("Reload button clicked");
-        ShowPopup("Reload");
+        await ShowPopup(ActionType.Reload);
     }
 
     /// <summary>
     /// Handles the event when the move button is clicked.
     /// </summary>
-    public void OnMoveButtonClicked()
+    public async Task OnMoveButtonClicked()
     {
         Debug.Log("Move button clicked");
         _selectedActionMarker.SetSecondaryAction(new MoveAction(_selectedMechController, _selectedActionMarker.transform.position));
-        ClosePanels();
+        await ClosePanels();
     }
 
     /// <summary>
     /// Handles the event when the charge button is clicked.
     /// </summary>
-    public void OnChargeButtonClicked()
+    public async Task OnChargeButtonClicked()
     {
         Debug.Log("Charge button clicked");
-        ShowPopup("Charge");
+        await ShowPopup(ActionType.Charge);
     }
 
     /// <summary>
     /// Handles the event when the hunker button is clicked.
     /// </summary>
-    public void OnHunkerButtonClicked()
+    public async Task OnHunkerButtonClicked()
     {
         Debug.Log("Hunker button clicked");
         _selectedActionMarker.SetSecondaryAction(new HunkerAction(_selectedMechController));
-        ClosePanels();
+        await ClosePanels();
     }
 
     /// <summary>
     /// Handles the event when the overwatch button is clicked.
     /// </summary>
-    public void OnOverwatchButtonClicked()
+    public async Task OnOverwatchButtonClicked()
     {
         Debug.Log("Overwatch button clicked");
         _selectedActionMarker.SetSecondaryAction(new OverwatchAction(_selectedMechController));
-        ClosePanels();
+        await ClosePanels();
     } 
 
     /// <summary>
     /// Handles the event when the remove button is clicked.
     /// </summary>
-    public void OnRemoveButtonClicked()
+    public async Task OnRemoveButtonClicked()
     {
         Debug.Log("Remove button clicked");
         if (_selectedActionMarker != null)
@@ -836,16 +988,16 @@ public class CombatUIManager : MonoBehaviour
             _selectedMechController.RemoveActionMarker(_selectedActionMarker);
             _selectedActionMarker = null;
         }
-        ClosePanels();
+        await ClosePanels();
     }
 
     /// <summary>
     /// Handles the event when the cancel button is clicked.
     /// </summary>
-    public void OnCancelButtonClicked()
+    public async Task OnCancelButtonClicked()
     {
         Debug.Log("Cancel button clicked");
-        ClosePanels();
+        await ClosePanels();
     }
 
     /// <summary>
@@ -873,11 +1025,11 @@ public class CombatUIManager : MonoBehaviour
     /// <summary>
     /// Closes all open panels.
     /// </summary>
-    private void ClosePanels()
+    private async Task ClosePanels()
     {
         HideMechInfoPanel();
         HideActionSelectionPanel();
-        HidePopup();
+        await HidePopup();
     }
 
     /// <summary>

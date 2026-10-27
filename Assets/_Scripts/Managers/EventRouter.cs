@@ -532,4 +532,75 @@ public static class EventRouter
             isProcessingHoverableItemTooltipExitQueue = false;
         }
     }
+
+    public static UnityEvent<GameObject, MechController> OnHoverableMechControllerInteractionEnter = new UnityEvent<GameObject, MechController>();
+    public static UnityEvent<GameObject, MechController> ROnHoverableMechControllerInteractionEnter = new UnityEvent<GameObject, MechController>();
+    private static readonly Queue<UnityEvent<GameObject, MechController>> HoverableMechControllerInteractionEnterEventQueue = new Queue<UnityEvent<GameObject, MechController>>();
+    private static bool isProcessingHoverableMechControllerInteractionEnterQueue = false;
+    public static UnityEvent<GameObject, MechController> OnHoverableMechControllerInteractionExit = new UnityEvent<GameObject, MechController>();
+    public static UnityEvent<GameObject, MechController> ROnHoverableMechControllerInteractionExit = new UnityEvent<GameObject, MechController>();
+    private static readonly Queue<UnityEvent<GameObject, MechController>> HoverableMechControllerInteractionExitEventQueue = new Queue<UnityEvent<GameObject, MechController>>();
+    private static bool isProcessingHoverableMechControllerInteractionExitQueue = false;
+    private static int hoverableMechControllerInteractionEnterCount = 0;
+
+    public static void RegisterWithHub(HoverableMechControllerInteraction hoverableMechController)
+    {
+        if (hoverableMechController == null)
+        {
+            return;
+        }
+        OnHoverableMechControllerInteractionEnter.RemoveListener(OnHoverableMechControllerInteractionEnterHandler);
+        OnHoverableMechControllerInteractionExit.RemoveListener(OnHoverableMechControllerInteractionExitHandler);
+        OnHoverableMechControllerInteractionEnter.AddListener(OnHoverableMechControllerInteractionEnterHandler);
+        OnHoverableMechControllerInteractionExit.AddListener(OnHoverableMechControllerInteractionExitHandler);
+
+        hoverableMechControllerInteractionEnterCount++;
+    }
+
+    public static void UnregisterFromHub(HoverableMechControllerInteraction hoverableMechController)
+    {
+        if (hoverableMechController == null)
+        {
+            return;
+        }
+        hoverableMechControllerInteractionEnterCount = Mathf.Max(hoverableMechControllerInteractionEnterCount - 1, 0);
+        if (hoverableMechControllerInteractionEnterCount == 0)
+        {
+            OnHoverableMechControllerInteractionEnter.RemoveListener(OnHoverableMechControllerInteractionEnterHandler);
+            OnHoverableMechControllerInteractionExit.RemoveListener(OnHoverableMechControllerInteractionExitHandler);
+        }
+    }
+
+    private static void OnHoverableMechControllerInteractionEnterHandler(GameObject go, MechController mechController)
+    {
+        // Debug.Log($"OnHoverableMechControllerInteractionEnterHandler invoked for GameObject: {go.name}, MechController: {mechController?.name}");
+        HoverableMechControllerInteractionEnterEventQueue.Enqueue(ROnHoverableMechControllerInteractionEnter);
+
+        if (!isProcessingHoverableMechControllerInteractionEnterQueue)
+        {
+            isProcessingHoverableMechControllerInteractionEnterQueue = true;
+            while (HoverableMechControllerInteractionEnterEventQueue.Count > 0)
+            {
+                UnityEvent<GameObject, MechController> evt = HoverableMechControllerInteractionEnterEventQueue.Dequeue();
+                evt?.Invoke(go, mechController);
+            }
+            isProcessingHoverableMechControllerInteractionEnterQueue = false;
+        }
+    }
+    
+    private static void OnHoverableMechControllerInteractionExitHandler(GameObject go, MechController mechController)
+    {
+        HoverableMechControllerInteractionExitEventQueue.Enqueue(ROnHoverableMechControllerInteractionExit);
+
+        if (!isProcessingHoverableMechControllerInteractionExitQueue)
+        {
+            isProcessingHoverableMechControllerInteractionExitQueue = true;
+            while (HoverableMechControllerInteractionExitEventQueue.Count > 0)
+            {
+                UnityEvent<GameObject, MechController> evt = HoverableMechControllerInteractionExitEventQueue.Dequeue();
+                evt?.Invoke(go, mechController);
+            }
+            isProcessingHoverableMechControllerInteractionExitQueue = false;
+        }
+    }
 }

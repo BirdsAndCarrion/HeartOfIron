@@ -12,6 +12,8 @@ public class ShaderParamController : MonoBehaviour
     private readonly string dissolveActiveParam = "_DissolveActive";
     private readonly string hitTimerParam = "_HitTimer";
     private readonly string damageTypeParam = "_DamageType";
+    private readonly string isHoveredParam = "_IsHovered";
+    private readonly string hoveredColorParam = "_HoveredColor";
 
     private readonly float ENABLED = 1.0f; // Example value, adjust as needed
     private readonly float DISABLED = 0.0f; // Example value, adjust as needed
@@ -79,5 +81,15 @@ public class ShaderParamController : MonoBehaviour
     {
         material.SetFloat(hitTimerParam, flashDuration); // Example value, adjust as needed
         material.SetFloat(damageTypeParam, damageType);
+    }
+
+    public void SetHovered(bool isHovered)
+    {
+        material.SetFloat(isHoveredParam, isHovered ? ENABLED : DISABLED);
+    }
+
+    public void SetHoveredColor(Color color)
+    {
+        material.SetColor(hoveredColorParam, color);
     }
 }

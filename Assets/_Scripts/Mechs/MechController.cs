@@ -532,6 +532,16 @@ public class MechController : MonoBehaviour, ISelectable, IDamageable
         return $"MechController: {_mech.Name}";
     }
 
+    public void OnHovered()
+    {
+        _shaderParamController.SetHovered(true);
+    }
+    
+    public void OnHoverExit()
+    {
+        _shaderParamController.SetHovered(false);
+    }
+
     public bool IsLowHealth()
     {
         return _mech.IsLowHealth();
