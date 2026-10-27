@@ -6,10 +6,16 @@ using UnityEngine.UI;
 using System.Text;
 using System.Threading.Tasks;
 
-
+/// <summary>
+/// Manages the UI elements and interactions within the garage scene, including mech selection and modification.
+/// Provides functionality for displaying mech selection options, handling mech modifications, and updating UI elements accordingly.
+/// Also manages the display of tooltips for hoverable items and color picker interactions.
+/// </summary>
 public class GarageUIManager : MonoBehaviour
 {
-
+    /// <summary>
+    /// Offset for positioning the hoverable item tooltip relative to the item being hovered over.
+    /// </summary>
     private readonly float TOOLTIP_OFFSET_X = 0.5f;
 
     [SerializeField] RectTransform _canvasRectTransform;
@@ -32,6 +38,9 @@ public class GarageUIManager : MonoBehaviour
     [SerializeField] private RuntimeColorPicker _runtimeColorPicker;
     [SerializeField] private GameObject _hoverableItemTooltip;
     private Item _selectedItem;
+    /// <summary>
+    /// The list of item types currently selected for filtering in the garage UI.
+    /// </summary>
     private List<ItemType> _itemTypes = new List<ItemType> { ItemType.Weapon, ItemType.Armor, ItemType.EnergyShield };
 
     void Awake()
@@ -52,6 +61,9 @@ public class GarageUIManager : MonoBehaviour
         EventRouter.ROnHoverableItemTooltipExit.RemoveListener(OnHoverableItemTooltipExit);
     }
 
+    /// <summary>
+    /// Displays the mech selection panel, populates it with available mechs, and highlights the currently selected mech.
+    /// </summary>
     void ShowMechSelectionPanel()
     {
         foreach (Transform child in _mechSelectionOptionsPanel.transform)
@@ -89,6 +101,10 @@ public class GarageUIManager : MonoBehaviour
         _mechSelectionPanel.SetActive(true);
     }
 
+    /// <summary>
+    /// Handles the event when a mech is selected from the mech selection panel. Updates the currently selected mech and refreshes the UI accordingly.
+    /// </summary>
+    /// <param name="mech">The mech that was selected.</param>
     void OnMechSelected(Mech mech)
     {
         _selectedMech = mech;
@@ -96,6 +112,9 @@ public class GarageUIManager : MonoBehaviour
         ShowMechSelectionPanel();
     }
 
+    /// <summary>
+    /// Handles the event when the "Equip Mech" button is clicked. Ensures a mech is selected before showing the mech modification panel.
+    /// </summary>
     public void OnEquipMechButtonClicked()
     {
         if (_selectedMech == null)
@@ -106,6 +125,9 @@ public class GarageUIManager : MonoBehaviour
         ShowMechModPanel();
     }
 
+    /// <summary>
+    /// Displays the mech modification panel, populates it with available modification options, and updates the UI to reflect the currently selected mech and pilot.
+    /// </summary>
     void ShowMechModPanel()
     {
         _mechSelectionPanel.SetActive(false);
@@ -152,6 +174,9 @@ public class GarageUIManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Displays the available weapon options for the selected mech and allows the player to equip them.
+    /// </summary>
     void ShowWeaponOptions()
     {
         List<Weapon> playerWeapons = GameManager.Instance.GetAllWeapons();
@@ -172,6 +197,9 @@ public class GarageUIManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Displays the available armor options for the selected mech and allows the player to equip them.
+    /// </summary>
     void ShowArmorOptions()
     {
         List<Armor> playerArmors = GameManager.Instance.GetAllArmors();
@@ -192,6 +220,9 @@ public class GarageUIManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Displays the available energy shield options for the selected mech and allows the player to equip them.
+    /// </summary>
     void ShowEnergyShieldOptions()
     {
         List<EnergyShield> playerShields = GameManager.Instance.GetAllEnergyShields();
@@ -212,6 +243,12 @@ public class GarageUIManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Handles the event when an item (weapon, armor, or energy shield) is selected for the currently selected mech.
+    /// </summary>
+    /// <param name="itemObject">The UI object representing the item.</param>
+    /// <param name="item">The item that was selected.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
     async Task OnItemSelected(GameObject itemObject, Item item)
     {
         if (item == null)
@@ -281,6 +318,11 @@ public class GarageUIManager : MonoBehaviour
         ShowMechModPanel(); // Refresh the mech mod panel to reflect the selection change
     }
 
+    /// <summary>
+    /// Handles the visual feedback for a failed equip attempt by flashing the item red.
+    /// </summary>
+    /// <param name="itemObject">The UI object representing the item that failed to equip.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
     private async Task HandleEquipFailure(GameObject itemObject)
     {
         // Flash object red for a brief moment to indicate equip failure
@@ -294,16 +336,26 @@ public class GarageUIManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Handles the event when the play button is clicked and loads the combat scene.
+    /// </summary>
     public void OnPlayButtonClicked()
     {
         SceneLoader.Instance.LoadScene(SceneName.CombatScene);
     }
 
+    /// <summary>
+    /// Handles the event when the main menu button is clicked and loads the main menu scene.
+    /// </summary>
     public void OnMainMenuButtonClicked()
     {
         SceneLoader.Instance.LoadScene(SceneName.MainMenu);
     }
 
+    /// <summary>
+    /// Handles the event when the weapon filter button is clicked and toggles the weapon filter.
+    /// </summary>
+    /// <param name="button">The UI button representing the weapon filter.</param>
     public void OnWeaponFilterButtonClicked(GameObject button)
     {
         if (_itemTypes.Contains(ItemType.Weapon))
@@ -317,6 +369,10 @@ public class GarageUIManager : MonoBehaviour
         ShowMechModPanel(); // Refresh the mech mod panel to reflect the filter change
     }
 
+    /// <summary>
+    /// Handles the event when the armor filter button is clicked and toggles the armor filter.
+    /// </summary>
+    /// <param name="button">The UI button representing the armor filter.</param>
     public void OnArmorFilterButtonClicked(GameObject button)
     {
         if (_itemTypes.Contains(ItemType.Armor))
@@ -330,6 +386,10 @@ public class GarageUIManager : MonoBehaviour
         ShowMechModPanel(); // Refresh the mech mod panel to reflect the filter change
     }
 
+    /// <summary>
+    /// Handles the event when the energy shield filter button is clicked and toggles the energy shield filter.
+    /// </summary>
+    /// <param name="button">The UI button representing the energy shield filter.</param>
     public void OnEnergyShieldFilterButtonClicked(GameObject button)
     {
         if (_itemTypes.Contains(ItemType.EnergyShield))
@@ -343,6 +403,9 @@ public class GarageUIManager : MonoBehaviour
         ShowMechModPanel(); // Refresh the mech mod panel to reflect the filter change
     }
 
+    /// <summary>
+    /// Updates the name of the selected mech based on the input from the mech name text field.
+    /// </summary>
     public void UpdateMechName()
     {
         if (_selectedMech == null)
@@ -361,6 +424,9 @@ public class GarageUIManager : MonoBehaviour
         DisplayMechInfo(); // Refresh the displayed info
     }
 
+    /// <summary>
+    /// Displays the information of the selected mech in the mech info display panel.
+    /// </summary>
     private void DisplayMechInfo()
     {
         if (_selectedMech != null)
@@ -371,6 +437,10 @@ public class GarageUIManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Shows the color picker panel and sets the target mech for color customization.
+    /// </summary>
+    /// <param name="callingButton">The button that triggered the color picker panel.</param>
     private void ShowColorPickerPanel(GameObject callingButton)
     {
         _colorPickerPanel.SetActive(true);
@@ -385,12 +455,20 @@ public class GarageUIManager : MonoBehaviour
         callingButton.GetComponent<Button>().onClick.AddListener(HideColorPickerPanel);
     }
 
+    /// <summary>
+    /// Hides the color picker panel and clears the target mech.
+    /// </summary>
     private void HideColorPickerPanel()
     {
         _colorPickerPanel.SetActive(false);
         _runtimeColorPicker.ClearTargetMech();
     }
 
+    /// <summary>
+    /// Handles the event when the mouse enters a hoverable item and displays the appropriate tooltip.
+    /// </summary>
+    /// <param name="go">The GameObject representing the UI element being hovered over.</param>
+    /// <param name="item">The item associated with the UI element.</param>
     private void OnHoverableItemTooltipEnter(GameObject go, Item item)
     {   
         if (item == null)
@@ -450,11 +528,21 @@ public class GarageUIManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Calculates the initial offset for positioning the tooltip relative to the UI element.
+    /// </summary>
+    /// <param name="go">The GameObject representing the UI element.</param>
+    /// <returns>The initial offset as a Vector3.</returns>
     private Vector3 GetInitialOffsetX(GameObject go)
     {
         return new Vector3(go.GetComponent<RectTransform>().rect.width / 2 + TOOLTIP_OFFSET_X, go.GetComponent<RectTransform>().rect.height / 2, 0);
     }
 
+    /// <summary>
+    /// Calculates the offset for positioning the tooltip relative to the UI element, taking into account existing child tooltips.
+    /// </summary>
+    /// <param name="go">The GameObject representing the UI element.</param>
+    /// <returns>The calculated offset as a Vector3.</returns>
     private Vector3 GetChildOffsetX(GameObject go)
     {
         Vector3 offset = GetInitialOffsetX(go);
@@ -475,6 +563,11 @@ public class GarageUIManager : MonoBehaviour
         return new Vector3(offsetX, offset.y, 0);
     }
 
+    /// <summary>
+    /// Creates a tooltip GameObject for the specified weapon.
+    /// </summary>
+    /// <param name="weapon">The weapon for which to create the tooltip.</param>
+    /// <returns>The created weapon tooltip GameObject.</returns>
     private GameObject CreateWeaponTooltip(Weapon weapon)
     {
         // Instantiate and configure the weapon tooltip GameObject
@@ -488,6 +581,11 @@ public class GarageUIManager : MonoBehaviour
         return tooltip;
     }
 
+    /// <summary>
+    /// Creates a tooltip GameObject for the specified armor.
+    /// </summary>
+    /// <param name="armor">The armor for which to create the tooltip.</param>
+    /// <returns>The created armor tooltip GameObject.</returns>
     private GameObject CreateArmorTooltip(Armor armor)
     {
         // Instantiate and configure the armor tooltip GameObject
@@ -501,6 +599,11 @@ public class GarageUIManager : MonoBehaviour
         return tooltip;
     }
 
+    /// <summary>
+    /// Creates a tooltip GameObject for the specified energy shield.
+    /// </summary>
+    /// <param name="shield">The energy shield for which to create the tooltip.</param>
+    /// <returns>The created energy shield tooltip GameObject.</returns>
     private GameObject CreateEnergyShieldTooltip(EnergyShield shield)
     {
         // Instantiate and configure the energy shield tooltip GameObject
@@ -514,6 +617,10 @@ public class GarageUIManager : MonoBehaviour
         return tooltip;
     }
 
+    /// <summary>
+    /// Handles the event when the mouse exits a hoverable item and destroys the associated tooltip.
+    /// </summary>
+    /// <param name="go">The GameObject representing the UI element that the mouse exited.</param>
     private void OnHoverableItemTooltipExit(GameObject go)
     {
         // Handle tooltip exit event

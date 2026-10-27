@@ -4,6 +4,9 @@ using TMPro;
 using UnityEngine.UI;
 using HeartOfIron.Enums;
 
+/// <summary>
+/// Manages the UI for the EngiBay, including displaying available research items for crafting, item details, and handling crafting actions.
+/// </summary>
 public class EngiBayUIManager : MonoBehaviour
 {
     public static EngiBayUIManager Instance { get; private set; }
@@ -35,6 +38,9 @@ public class EngiBayUIManager : MonoBehaviour
         ShowEngiBayOptions();
     }
 
+    /// <summary>
+    /// Displays the available research options in the EngiBay.
+    /// </summary>
     public void ShowEngiBayOptions()
     {
         List<ItemBlueprint> availableResearch = GameManager.Instance.AvailableResearch;
@@ -68,12 +74,19 @@ public class EngiBayUIManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Handles the event when a research item button is clicked.
+    /// </summary>
+    /// <param name="itemBlueprint">The blueprint of the item that was clicked.</param>
     void OnResearchButtonClicked(ItemBlueprint itemBlueprint)
     {
         currentItemBlueprint = itemBlueprint;
         UpdateItemInfoDisplay();
     }
 
+    /// <summary>
+    /// Updates the item information display based on the currently selected item blueprint.
+    /// </summary>
     void UpdateItemInfoDisplay()
     {
         if (currentItemBlueprint != null)
@@ -88,6 +101,9 @@ public class EngiBayUIManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Handles the event when the craft button is clicked.
+    /// </summary>
     public void OnCraftButtonClicked()
     {
         if (currentItemBlueprint != null && IsItemCraftable(currentItemBlueprint))
@@ -117,12 +133,21 @@ public class EngiBayUIManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Determines whether the specified item blueprint can be crafted based on available resources.
+    /// </summary>
+    /// <param name="itemBlueprint">The blueprint of the item to check.</param>
+    /// <returns>True if the item can be crafted; otherwise, false.</returns>
     private bool IsItemCraftable(ItemBlueprint itemBlueprint)
     {
         // Check if the player has enough resources to craft the item
         return GameManager.Instance.Bolts >= itemBlueprint.Cost;
     }
 
+    /// <summary>
+    /// Handles the event when the weapon filter button is clicked.
+    /// </summary>
+    /// <param name="button">The button that was clicked.</param>
     public void OnWeaponFilterButtonClicked(GameObject button)
     {
         if (_itemTypes.Contains(ItemType.Weapon))
@@ -136,6 +161,10 @@ public class EngiBayUIManager : MonoBehaviour
         ShowEngiBayOptions(); // Refresh the options display to reflect the filter change
     }
 
+    /// <summary>
+    /// Handles the event when the armor filter button is clicked.
+    /// </summary>
+    /// <param name="button">The button that was clicked.</param>
     public void OnArmorFilterButtonClicked(GameObject button)
     {
         if (_itemTypes.Contains(ItemType.Armor))
@@ -149,6 +178,10 @@ public class EngiBayUIManager : MonoBehaviour
         ShowEngiBayOptions(); // Refresh the options display to reflect the filter change
     }
 
+    /// <summary>
+    /// Handles the event when the energy shield filter button is clicked.
+    /// </summary>
+    /// <param name="button">The button that was clicked.</param>
     public void OnEnergyShieldFilterButtonClicked(GameObject button)
     {
         if (_itemTypes.Contains(ItemType.EnergyShield))
@@ -162,6 +195,10 @@ public class EngiBayUIManager : MonoBehaviour
         ShowEngiBayOptions(); // Refresh the options display to reflect the filter change
     }
 
+    /// <summary>
+    /// Handles the event when the mech filter button is clicked.
+    /// </summary>
+    /// <param name="button">The button that was clicked.</param>
     public void OnMechFilterButtonClicked(GameObject button)
     {
         if (_itemTypes.Contains(ItemType.Mech))
