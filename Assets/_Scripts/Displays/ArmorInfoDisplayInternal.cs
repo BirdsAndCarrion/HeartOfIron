@@ -3,6 +3,11 @@ using TMPro;
 using HeartOfIron.Enums;
 using System;
 
+/// <summary>
+/// Displays detailed information about a specific armor piece in the UI.
+/// Updates the UI elements with the armor's name, weight, type, coverage, resistance, defense rating, and durability.
+/// This class is intended to interface with a specific element in the UI to display armor information.
+/// </summary>
 public class ArmorInfoDisplayInternal : MonoBehaviour
 {
     

@@ -1,13 +1,21 @@
 using UnityEngine;
 using System;
 
+/// <summary>
+/// Assembles and manages action markers for mechs in the game.
+/// Provides functionality to create and configure action markers, 
+/// including setting their position, scale, and color based on the associated mech.
+/// </summary>
 [Serializable]
 public class ActionMarkerAssembler : MonoBehaviour
 {
+    /// <summary>
+    /// Singleton instance of the ActionMarkerAssembler.
+    /// </summary>
     public static ActionMarkerAssembler Instance { get; private set; }
 
     [SerializeField] private GameObject _actionMarkerPrefab;
-    [SerializeField] private float ACTION_MARKER_SCALE = 0.5f; // Adjust the scale as needed
+    [SerializeField] private float ACTION_MARKER_SCALE = 0.5f;
 
     void Awake()
     {
@@ -21,6 +29,13 @@ public class ActionMarkerAssembler : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Assembles an action marker at the specified position for the given mech.
+    /// </summary>
+    /// <param name="position">The position to place the action marker.</param>
+    /// <param name="sourceMech">The mech associated with the action marker.</param>
+    /// <param name="addToMech">Whether to add the action marker to the mech's list of action markers.</param>
+    /// <returns>The assembled action marker.</returns>
     public virtual ActionMarker AssembleActionMarker(Vector3 position, MechController sourceMech, bool addToMech = true)
     {
         GameObject actionMarkerObject = Instantiate(_actionMarkerPrefab, position, Quaternion.identity);

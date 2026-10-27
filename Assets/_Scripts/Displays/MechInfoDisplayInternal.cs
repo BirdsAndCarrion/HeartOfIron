@@ -2,6 +2,11 @@ using UnityEngine;
 using TMPro;
 using HeartOfIron.Enums;
 
+/// <summary>
+/// Displays detailed information about a specific mech in the UI.
+/// Updates the UI elements with the mech's name, type, level, experience, pilot, move speed, weapons, energy shield, health, and armor.
+/// This class is intended to interface with a specific element in the UI to display mech information.
+/// </summary>
 public class MechInfoDisplayInternal : MonoBehaviour
 {
 

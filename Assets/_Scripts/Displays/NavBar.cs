@@ -2,6 +2,10 @@ using UnityEngine;
 using UnityEngine.UI;
 using HeartOfIron.Enums;
 
+/// <summary>
+/// Manages the navigation bar in the UI.
+/// Handles button clicks for different scenes and highlights the current location.
+/// </summary>
 public class NavBar : MonoBehaviour
 {
 

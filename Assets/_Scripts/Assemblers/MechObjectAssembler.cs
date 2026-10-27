@@ -2,11 +2,16 @@ using UnityEngine;
 using System.Collections.Generic;
 using HeartOfIron.Enums;
 
+/// <summary>
+/// Assembles mech objects in the game world based on mech data.
+/// Provides functionality to create mech GameObjects with controllers, weapons, and proper attachments.
+/// </summary>
 public class MechObjectAssembler : MonoBehaviour
 {
     
     public static MechObjectAssembler Instance { get; private set; }
 
+    // TODO: Figure out if both of the mech prefabs are necessary or if we can consolidate into one prefab with optional MechController.
     [SerializeField] private GameObject _mechPrefab;
     [SerializeField] private GameObject _mechPrefabWController; // New prefab with MechController attached
     [SerializeField] private float MECH_SCALE = 1.0f; // Adjust the scale as needed
@@ -25,6 +30,13 @@ public class MechObjectAssembler : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Assembles a mech GameObject in the scene based on the provided mech data.
+    /// </summary>
+    /// <param name="mechData">The data of the mech to assemble.</param>
+    /// <param name="position">The position to place the mech in the scene.</param>
+    /// <param name="rotation">The rotation to apply to the mech in the scene.</param>
+    /// <returns>The MechController of the assembled mech.</returns>
     public MechController AssembleMechObject(Mech mechData, Vector3 position, Quaternion rotation)
     {
         GameObject mechObject = Instantiate(_mechPrefabWController, position, rotation);

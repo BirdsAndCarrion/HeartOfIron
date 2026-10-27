@@ -3,6 +3,11 @@ using TMPro;
 using HeartOfIron.Enums;
 using System;
 
+/// <summary>
+/// Displays detailed information about a specific weapon in the UI.
+/// Updates the UI elements with the weapon's name, weight, slots required, and either ranged or melee stats.
+/// This class is intended to interface with a specific element in the UI to display weapon information.
+/// </summary>
 public class WeaponInfoDisplayInternal : MonoBehaviour
 {
     [Header("Generic Elements")]

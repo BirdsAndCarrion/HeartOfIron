@@ -1,12 +1,16 @@
 using UnityEngine;
 using HeartOfIron.Enums;
 
+/// <summary>
+/// Represents a hunker action performed by a mech, putting it into a defensive hunkering state.
+/// </summary>
 public class HunkerAction : DefendAction
 {
     public HunkerAction(MechController sourceMech) : base(ActionType.Hunker, sourceMech)
     {
     }
 
+    /// <inheritdoc/>
     public override ActionResult Execute()
     {
         ActionResult canExecuteResult = CanExecute();
@@ -21,6 +25,7 @@ public class HunkerAction : DefendAction
         return ActionResult.Success;
     }
 
+    /// <inheritdoc/>
     public override ActionResult CanExecute()
     {
         if (SourceMech == null)

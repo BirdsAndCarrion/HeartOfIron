@@ -1,6 +1,11 @@
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// Provides a runtime color picker UI for adjusting the color of a mech or its pilot.
+/// Updates the color preview and the associated mech or pilot color in real-time.
+/// This class is intended to interface with the UI elements for color selection and preview.
+/// </summary>
 public class RuntimeColorPicker : MonoBehaviour
 {
 

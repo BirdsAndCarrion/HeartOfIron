@@ -73,7 +73,7 @@ public class TestInventory
         EnergyShield energyShield = CreateEnergyShield();
 
         // Act
-        Inventory inventory = new Inventory(weapon1, weapon2, null, armor, null, null, energyShield);
+        Inventory inventory = new Inventory(CreateTestMech(), weapon1, weapon2, null, armor, null, null, energyShield);
 
         // Assert
         Assert.AreEqual(weapon1, inventory.Weapons[(int)Hand.Right]);
@@ -94,7 +94,7 @@ public class TestInventory
         Armor armor = CreateArmor();
         EnergyShield energyShield = CreateEnergyShield();
 
-        Inventory inventory = new Inventory(weapon1, weapon2, null, armor, null, null, energyShield);
+        Inventory inventory = new Inventory(CreateTestMech(), weapon1, weapon2, null, armor, null, null, energyShield);
 
         // Assert
         Assert.IsTrue(inventory.HasItem(weapon1));
@@ -476,11 +476,11 @@ public class TestInventory
 
         float distance = 15f; // Test distance
 
-        Weapon idealWeapon = inventory.GetIdealRangedWeapon(distance);
+        RangedAttack idealWeapon = inventory.GetIdealRangedAttack(distance);
 
         // Assert
         Assert.IsNotNull(idealWeapon);
-        Assert.AreEqual(weapon1, idealWeapon);
+        Assert.AreEqual(weapon1.GetRangedAttack(), idealWeapon);
     }
 
     [Test]
@@ -493,7 +493,7 @@ public class TestInventory
 
         float distance = 15f; // Test distance
 
-        Weapon idealWeapon = inventory.GetIdealRangedWeapon(distance);
+        RangedAttack idealWeapon = inventory.GetIdealRangedAttack(distance);
 
         // Assert
         Assert.IsNull(idealWeapon); // Should return null since there are no ranged weapons
@@ -511,11 +511,11 @@ public class TestInventory
 
         float distance = 15f; // Test distance
 
-        Weapon idealWeapon = inventory.GetIdealRangedWeapon(distance);
+        RangedAttack idealWeapon = inventory.GetIdealRangedAttack(distance);
 
         // Assert
         Assert.IsNotNull(idealWeapon);
-        Assert.AreEqual(weapon1, idealWeapon); // Should return the first weapon since both are equal
+        Assert.AreEqual(weapon1.GetRangedAttack(), idealWeapon); // Should return the first weapon since both are equal
     }
 
     [Test]
@@ -528,17 +528,18 @@ public class TestInventory
         inventory.EquipWeapon(weapon1, owner);
         inventory.EquipWeapon(weapon2, owner);
 
-        // Deplete ammo for both weapons
-        weapon1.ConsumeAmmo(weapon1.CurrentAmmo); // Set current ammo to 0
-        weapon1.UpdateCooldown(weapon1.CooldownTime); // Update cooldown to ensure it's ready to fire
-
         float distance = 15f; // Test distance
+        RangedAttack idealWeapon1 = inventory.GetIdealRangedAttack(distance);
 
-        Weapon idealWeapon = inventory.GetIdealRangedWeapon(distance);
+        // Deplete ammo for both weapons
+        idealWeapon1.ConsumeAmmo(idealWeapon1.CurrentAmmo); // Set current ammo to 0
+        idealWeapon1.SetTimer(idealWeapon1.Cooldown); // Update cooldown to ensure it's ready to fire
+
+        RangedAttack idealWeapon2 = inventory.GetIdealRangedAttack(distance);
 
         // Assert
-        Assert.IsNotNull(idealWeapon);
-        Assert.AreEqual(weapon2, idealWeapon); // Should return weapon2 since weapon1
+        Assert.IsNotNull(idealWeapon2);
+        Assert.AreEqual(weapon2.GetRangedAttack(), idealWeapon2); // Should return weapon2 since weapon1
     }
 
     [Test]
@@ -553,7 +554,7 @@ public class TestInventory
 
         float distance = 0f; // Test distance that is within melee range
 
-        Weapon idealWeapon = inventory.GetIdealRangedWeapon(distance);
+        RangedAttack idealWeapon = inventory.GetIdealRangedAttack(distance);
 
         // Assert
         Assert.IsNull(idealWeapon); // Should return null since both weapons are ranged and cannot attack at melee range
@@ -569,11 +570,13 @@ public class TestInventory
         inventory.EquipWeapon(meleeWeapon1, owner);
         inventory.EquipWeapon(meleeWeapon2, owner);
 
-        Weapon idealMeleeWeapon = inventory.GetIdealMeleeWeapon();
+        float distance = 1f; // Test distance within melee range
+
+        MeleeAttack idealMeleeWeapon = inventory.GetIdealMeleeAttack(distance);
 
         // Assert
         Assert.IsNotNull(idealMeleeWeapon);
-        Assert.AreEqual(meleeWeapon1, idealMeleeWeapon); // Should return the melee weapon with the highest average damage
+        Assert.AreEqual(meleeWeapon1.GetMeleeAttack(), idealMeleeWeapon); // Should return the melee weapon with the highest average damage
     }
 
     [Test]

@@ -1,12 +1,16 @@
 using UnityEngine;
 using HeartOfIron.Enums;
 
+/// <summary>
+/// Represents an overwatch action performed by a mech, putting it into an overwatch state.
+/// </summary>
 public class OverwatchAction : DefendAction
 {
     public OverwatchAction(MechController sourceMech) : base(ActionType.Overwatch, sourceMech)
     {
     }
 
+    /// <inheritdoc/>
     public override ActionResult Execute()
     {
         ActionResult canExecuteResult = CanExecute();
@@ -21,6 +25,7 @@ public class OverwatchAction : DefendAction
         return ActionResult.Success;
     }
 
+    /// <inheritdoc/>
     public override ActionResult CanExecute()
     {
         if (SourceMech == null)

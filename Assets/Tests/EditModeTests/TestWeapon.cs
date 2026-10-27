@@ -78,22 +78,24 @@ public class TestWeapon
     {
         // Arrange
         Weapon weapon = new Weapon(WeaponName.MediumRifle, "TestWeapon", Weight.Medium, 100, 25, 10, 30, 2.0f, 0.5f, 1.0f, 2, 1, 1);
-        int initialAmmo = weapon.CurrentAmmo;
+        RangedAttack attack = weapon.GetRangedAttack();
+        Assert.IsNotNull(attack); // Ensure the ranged attack is properly retrieved
+        int initialAmmo = attack.CurrentAmmo;
         Assert.AreEqual(30, initialAmmo);
-        Assert.AreEqual(0f, weapon.CooldownTime); // Ensure initial cooldown time is 0
+        Assert.AreEqual(0f, attack.Timer); // Ensure initial cooldown time is 0
 
         // Act
-        weapon.ConsumeAmmo(5);
-        Assert.AreEqual(weapon.FireRate, weapon.CooldownTime); // Cooldown time should be set to fire rate after consuming ammo
+        attack.ConsumeAmmo(5);
+        Assert.AreEqual(weapon.FireRate, attack.Timer); // Cooldown time should be set to fire rate after consuming ammo
 
         // Assert
-        Assert.AreEqual(initialAmmo - 5, weapon.CurrentAmmo);
+        Assert.AreEqual(initialAmmo - 5, attack.CurrentAmmo);
 
         // Test consuming more ammo than available
-        weapon.ConsumeAmmo(50);
-        Assert.AreEqual(0, weapon.CurrentAmmo); // Ammo should not go below zero
+        attack.ConsumeAmmo(50);
+        Assert.AreEqual(0, attack.CurrentAmmo); // Ammo should not go below zero
 
-        Assert.AreEqual(weapon.FireRate, weapon.CooldownTime); // Cooldown time should be set to fire rate after consuming ammo
+        Assert.AreEqual(weapon.FireRate, attack.Timer); // Cooldown time should be set to fire rate after consuming ammo
     }
 
     [Test]
@@ -101,12 +103,14 @@ public class TestWeapon
     {
         // Arrange
         Weapon weapon = new Weapon(WeaponName.MediumRifle, "TestWeapon", Weight.Medium, 100, 25, 10, 30, 2.0f, 0.5f, 1.0f, 2, 1, 1);
-        float initialCooldown = weapon.CooldownTime;
+        MeleeAttack meleeAttack = weapon.GetMeleeAttack();
+        Assert.IsNotNull(meleeAttack); // Ensure the melee attack is properly retrieved
+        float initialCooldown = meleeAttack.Timer;
         Assert.AreEqual(0f, initialCooldown);
 
-        weapon.SwingCooldown();
+        meleeAttack.SetTimer(meleeAttack.Cooldown);
 
-        Assert.AreEqual(weapon.SwingRate, weapon.CooldownTime); // Cooldown time should be set to swing rate after swinging
+        Assert.AreEqual(weapon.SwingRate, meleeAttack.Timer); // Cooldown time should be set to swing rate after swinging
     }
 
     [Test]
@@ -114,18 +118,20 @@ public class TestWeapon
     {
         // Arrange
         Weapon weapon = new Weapon(WeaponName.MediumRifle, "TestWeapon", Weight.Medium, 100, 25, 10, 30, 2.0f, 0.5f, 1.0f, 2, 1, 1);
-        float initialCooldown = weapon.CooldownTime;
+        RangedAttack attack = weapon.GetRangedAttack();
+        Assert.IsNotNull(attack); // Ensure the ranged attack is properly retrieved
+        float initialCooldown = attack.Timer;
         Assert.AreEqual(0f, initialCooldown);
 
         // Act
-        weapon.UpdateCooldown(0f);
+        attack.SetTimer(attack.Cooldown);
 
         // Assert
-        Assert.AreEqual(initialCooldown, weapon.CooldownTime);
+        Assert.AreEqual(attack.Cooldown, attack.Timer);
 
-        weapon.UpdateCooldown(1f);
+        attack.UpdateTimer(1f);
 
-        Assert.AreEqual(initialCooldown, weapon.CooldownTime);
+        Assert.AreEqual(attack.Cooldown - 1f, attack.Timer);
     }
 
     [Test]
@@ -133,15 +139,17 @@ public class TestWeapon
     {
         // Arrange
         Weapon weapon = new Weapon(WeaponName.MediumRifle, "TestWeapon", Weight.Medium, 100, 25, 10, 30, 2.0f, 0.5f, 1.0f, 2, 1, 1);
-        weapon.ConsumeAmmo(5); // Set cooldown time to fire rate
-        float initialCooldown = weapon.CooldownTime;
+        RangedAttack attack = weapon.GetRangedAttack();
+        Assert.IsNotNull(attack); // Ensure the ranged attack is properly retrieved
+        attack.ConsumeAmmo(5); // Set cooldown time to fire rate
+        float initialCooldown = attack.Timer;
         Assert.AreEqual(weapon.FireRate, initialCooldown);
 
         // Act
-        weapon.UpdateCooldown(0.2f);
+        attack.UpdateTimer(0.2f);
 
         // Assert
-        Assert.AreEqual(initialCooldown - 0.2f, weapon.CooldownTime);
+        Assert.AreEqual(initialCooldown - 0.2f, attack.Timer);
     }
 
     [Test]
@@ -149,15 +157,17 @@ public class TestWeapon
     {
         // Arrange
         Weapon weapon = new Weapon(WeaponName.MediumRifle, "TestWeapon", Weight.Medium, 100, 25, 10, 30, 2.0f, 0.5f, 1.0f, 2, 1, 1);
-        weapon.ConsumeAmmo(5); // Set cooldown time to fire rate
-        float initialCooldown = weapon.CooldownTime;
+        RangedAttack attack = weapon.GetRangedAttack();
+        Assert.IsNotNull(attack); // Ensure the ranged attack is properly retrieved
+        attack.ConsumeAmmo(5); // Set cooldown time to fire rate
+        float initialCooldown = attack.Timer;
         Assert.AreEqual(weapon.FireRate, initialCooldown);
 
         // Act
-        weapon.UpdateCooldown(100f); // Large number to ensure cooldown goes to zero
+        attack.UpdateTimer(100f); // Large number to ensure cooldown goes to zero
 
         // Assert
-        Assert.AreEqual(0f, weapon.CooldownTime);
+        Assert.AreEqual(0f, attack.Timer);
     }
 
     [Test]
@@ -165,15 +175,17 @@ public class TestWeapon
     {
         // Arrange
         Weapon weapon = new Weapon(WeaponName.MediumRifle, "TestWeapon", Weight.Medium, 100, 25, 10, 30, 2.0f, 0.5f, 1.0f, 2, 1, 1);
-        weapon.ConsumeAmmo(10); // Reduce ammo to test reload
-        Assert.AreEqual(20, weapon.CurrentAmmo); // Ensure ammo is reduced
+        RangedAttack attack = weapon.GetRangedAttack();
+        Assert.IsNotNull(attack); // Ensure the ranged attack is properly retrieved
+        attack.ConsumeAmmo(10); // Reduce ammo to test reload
+        Assert.AreEqual(20, attack.CurrentAmmo); // Ensure ammo is reduced
 
         // Act
-        weapon.Reload();
+        attack.Reload();
 
         // Assert
-        Assert.AreEqual(30, weapon.CurrentAmmo); // Ammo should be restored to max
-        Assert.AreEqual(weapon.ReloadTime, weapon.CooldownTime); // Cooldown time should be set to reload time after reloading
+        Assert.AreEqual(30, attack.CurrentAmmo); // Ammo should be restored to max
+        Assert.AreEqual(weapon.ReloadTime, attack.Timer); // Cooldown time should be set to reload time after reloading
     }
 
     [Test]
@@ -181,14 +193,16 @@ public class TestWeapon
     {
         // Arrange
         Weapon weapon = new Weapon(WeaponName.MediumRifle, "TestWeapon", Weight.Medium, 100, 25, 10, 30, 2.0f, 0.5f, 1.0f, 2, 1, 1);
-        Assert.AreEqual(30, weapon.CurrentAmmo); // Ensure ammo is full
+        RangedAttack attack = weapon.GetRangedAttack();
+        Assert.IsNotNull(attack); // Ensure the ranged attack is properly retrieved
+        Assert.AreEqual(30, attack.CurrentAmmo); // Ensure ammo is full
 
         // Act
-        weapon.Reload();
+        attack.Reload();
 
         // Assert
-        Assert.AreEqual(30, weapon.CurrentAmmo); // Ammo should remain full
-        Assert.AreEqual(weapon.ReloadTime, weapon.CooldownTime); // Cooldown time should be set to reload time after reloading
+        Assert.AreEqual(30, attack.CurrentAmmo); // Ammo should remain full
+        Assert.AreEqual(weapon.ReloadTime, attack.Timer); // Cooldown time should be set to reload time after reloading
     }
 
     [Test]
@@ -196,15 +210,17 @@ public class TestWeapon
     {
         // Arrange
         Weapon weapon = new Weapon(WeaponName.MediumRifle, "TestWeapon", Weight.Medium, 100, 25, 10, 30, 2.0f, 0.5f, 1.0f, 2, 1, 1);
-        weapon.ConsumeAmmo(30); // Reduce ammo to zero
-        Assert.AreEqual(0, weapon.CurrentAmmo); // Ensure ammo is zero
+        RangedAttack attack = weapon.GetRangedAttack();
+        Assert.IsNotNull(attack); // Ensure the ranged attack is properly retrieved
+        attack.ConsumeAmmo(30); // Reduce ammo to zero
+        Assert.AreEqual(0, attack.CurrentAmmo); // Ensure ammo is zero
 
         // Act
-        weapon.Reload();
+        attack.Reload();
 
         // Assert
-        Assert.AreEqual(30, weapon.CurrentAmmo); // Ammo should be restored to max
-        Assert.AreEqual(weapon.ReloadTime, weapon.CooldownTime); // Cooldown time should be set to reload time after reloading
+        Assert.AreEqual(30, attack.CurrentAmmo); // Ammo should be restored to max
+        Assert.AreEqual(weapon.ReloadTime, attack.Timer); // Cooldown time should be set to reload time after reloading
     }
 
     [Test]
@@ -212,11 +228,13 @@ public class TestWeapon
     {
         // Arrange
         Weapon weapon = new Weapon(WeaponName.MediumRifle, "TestWeapon", Weight.Medium, 100, 25, 10, 30, 2.0f, 0.5f, 1.0f, 2, 1, 1);
+        RangedAttack attack = weapon.GetRangedAttack();
+        Assert.IsNotNull(attack); // Ensure the ranged attack is properly retrieved
         float distance = 50f; // Example distance
         float expectedSpread = weapon.AccuracyDropoff * distance;
 
         // Act
-        float actualSpread = weapon.CalculateSpread(distance);
+        float actualSpread = attack.CalculateSpread(distance);
 
         // Assert
         Assert.AreEqual(expectedSpread, actualSpread);
@@ -227,11 +245,13 @@ public class TestWeapon
     {
         // Arrange
         Weapon weapon = new Weapon(WeaponName.MediumRifle, "TestWeapon", Weight.Medium, 100, 25, 10, 30, 2.0f, 0.5f, 1.0f, 2, 1, 1);
+        RangedAttack attack = weapon.GetRangedAttack();
+        Assert.IsNotNull(attack); // Ensure the ranged attack is properly retrieved
         float distance = 0f; // Zero distance
         float expectedSpread = weapon.AccuracyDropoff * distance;
 
         // Act
-        float actualSpread = weapon.CalculateSpread(distance);
+        float actualSpread = attack.CalculateSpread(distance);
 
         // Assert
         Assert.AreEqual(expectedSpread, actualSpread);
@@ -242,10 +262,12 @@ public class TestWeapon
     {
         // Arrange
         Weapon weapon = new Weapon(WeaponName.MediumRifle, "TestWeapon", Weight.Medium, 100, 25, 10, 30, 2.0f, 0.5f, 1.0f, 2, 1, 1);
-        weapon.ConsumeAmmo(5); // Set cooldown time to fire rate
+        RangedAttack attack = weapon.GetRangedAttack();
+        Assert.IsNotNull(attack); // Ensure the ranged attack is properly retrieved
+        attack.ConsumeAmmo(5); // Set cooldown time to fire rate
 
         // Act
-        bool canAttack = weapon.CanAttack(20f);
+        bool canAttack = attack.CanAttack(20f);
 
         // Assert
         Assert.IsFalse(canAttack); // Should not be able to attack while on cooldown
@@ -256,11 +278,13 @@ public class TestWeapon
     {
         // Arrange
         Weapon weapon = new Weapon(WeaponName.MediumRifle, "TestWeapon", Weight.Medium, 100, 25, 10, 30, 2.0f, 0.5f, 1.0f, 2, 1, 1);
-        weapon.ConsumeAmmo(30); // Reduce ammo to zero
-        weapon.UpdateCooldown(weapon.FireRate); // Ensure cooldown is reset to 0
+        RangedAttack attack = weapon.GetRangedAttack();
+        Assert.IsNotNull(attack); // Ensure the ranged attack is properly retrieved
+        attack.ConsumeAmmo(30); // Reduce ammo to zero
+        attack.UpdateTimer(weapon.FireRate); // Ensure cooldown is reset to 0
 
         // Act
-        bool canAttack = weapon.CanAttack(20f);
+        bool canAttack = attack.CanAttack(20f);
 
         // Assert
         Assert.IsFalse(canAttack); // Should not be able to attack with no ammo
@@ -271,11 +295,14 @@ public class TestWeapon
     {
         // Arrange
         Weapon weapon = new Weapon(WeaponName.LightSword, "TestWeapon", Weight.Medium, 100, 25, 10, 30, 2.0f, 0.5f, 1.0f, 2, 1, 1);
-        weapon.ConsumeAmmo(30); // Reduce ammo to zero
-        weapon.UpdateCooldown(weapon.FireRate); // Ensure cooldown is reset to 0
+        RangedAttack attack = weapon.GetRangedAttack();
+        Assert.IsNotNull(attack); // Ensure the melee attack is properly retrieved
+
+        attack.ConsumeAmmo(30); // Reduce ammo to zero
+        attack.UpdateTimer(weapon.FireRate); // Ensure cooldown is reset to 0
 
         // Act
-        bool canAttack = weapon.CanAttack(1f); // Melee range
+        bool canAttack = attack.CanAttack(1f); // Melee range
 
         // Assert
         Assert.IsTrue(canAttack); // Should be able to attack in melee range even with no ammo
@@ -286,9 +313,11 @@ public class TestWeapon
     {
         // Arrange
         Weapon weapon = new Weapon(WeaponName.MediumRifle, "TestWeapon", Weight.Medium, 100, 25, 10, 30, 2.0f, 0.5f, 1.0f, 2, 1, 1);
+        RangedAttack attack = weapon.GetRangedAttack();
+        Assert.IsNotNull(attack); // Ensure the ranged attack is properly retrieved
 
         // Act
-        bool canAttack = weapon.CanAttack(20f);
+        bool canAttack = attack.CanAttack(20f);
 
         // Assert
         Assert.IsTrue(canAttack); // Should be able to attack with ammo and not on cooldown
@@ -299,10 +328,12 @@ public class TestWeapon
     {
         // Arrange
         Weapon weapon = new Weapon(WeaponName.MediumRifle, "TestWeapon", Weight.Medium, 100, 25, 10, 30, 2.0f, 0.5f, 1.0f, 2, 1, 1);
+        RangedAttack attack = weapon.GetRangedAttack();
+        Assert.IsNotNull(attack); // Ensure the ranged attack is properly retrieved
 
 
         // Act
-        float averageDamage = weapon.GetAverageDamage(20f); // Assuming a distance of 20 units
+        float averageDamage = attack.GetAverageDamage(20f); // Assuming a distance of 20 units
 
         // Assert
         Assert.AreEqual(20f, averageDamage); // Average damage should equal the weapon's damage
@@ -313,9 +344,11 @@ public class TestWeapon
     {
         // Arrange
         Weapon weapon = new Weapon(WeaponName.LightSword, "TestWeapon", Weight.Medium, 100, 25, 10, 30, 2.0f, 0.5f, 1.0f, 2, 1, 1);
+        MeleeAttack attack = weapon.GetMeleeAttack();
+        Assert.IsNotNull(attack); // Ensure the melee attack is properly retrieved
 
         // Act
-        float averageDamage = weapon.GetAverageDamage(1f); // Assuming a distance of 1 unit (melee range)
+        float averageDamage = attack.GetAverageDamage(1f); // Assuming a distance of 1 unit (melee range)
 
         // Assert
         Assert.AreEqual(9f, averageDamage); // Average damage should equal the weapon's melee damage multiplied by melee accuracy

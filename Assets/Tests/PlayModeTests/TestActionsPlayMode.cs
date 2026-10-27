@@ -103,7 +103,7 @@ public class TestActionsPlayMode
     [UnityTest]
     public IEnumerator TestActionMarker_Initialization_Charge()
     {
-        actionMarker.Initialize(sourceMechController, targetMechController, new List<Weapon>(sourceMech.Inventory.Weapons));
+        actionMarker.Initialize(sourceMechController, targetMechController, new List<MeleeAttack>(sourceMech.Inventory.MeleeAttacks));
 
         Assert.IsNotNull(actionMarker.ActionPair);
         Assert.IsNotNull(actionMarker.ActionPair.MovementAction);
@@ -119,7 +119,7 @@ public class TestActionsPlayMode
     {
         actionMarker.Initialize(new Vector3(5, 0, 5), sourceMechController);
 
-        MeleeAction meleeAction = new MeleeAction(sourceMechController, targetMechController, new List<Weapon>(sourceMech.Inventory.Weapons));
+        MeleeAction meleeAction = new MeleeAction(sourceMechController, targetMechController, new List<MeleeAttack>(sourceMech.Inventory.MeleeAttacks));
         actionMarker.SetSecondaryAction(meleeAction);
 
         Assert.IsNotNull(actionMarker.ActionPair);
@@ -150,7 +150,7 @@ public class TestActionsPlayMode
         MoveAction moveAction = new MoveAction(sourceMechController, new Vector3(5, 0, 5));
         ActionPair actionPair = new ActionPair(moveAction);
 
-        MeleeAction meleeAction = new MeleeAction(sourceMechController, targetMechController, new List<Weapon>(sourceMech.Inventory.Weapons));
+        MeleeAction meleeAction = new MeleeAction(sourceMechController, targetMechController, new List<MeleeAttack>(sourceMech.Inventory.MeleeAttacks));
         actionPair.SetSecondaryAction(meleeAction);
         yield return null;
 
@@ -164,10 +164,10 @@ public class TestActionsPlayMode
     public IEnumerator TestActionPair_SetSecondaryAction_ExistingSecondaryAction()
     {
         MoveAction moveAction = new MoveAction(sourceMechController, new Vector3(5, 0, 5));
-        MeleeAction meleeAction1 = new MeleeAction(sourceMechController, targetMechController, new List<Weapon>(sourceMech.Inventory.Weapons));
+        MeleeAction meleeAction1 = new MeleeAction(sourceMechController, targetMechController, new List<MeleeAttack>(sourceMech.Inventory.MeleeAttacks));
         ActionPair actionPair = new ActionPair(moveAction, meleeAction1);
 
-        MeleeAction meleeAction2 = new MeleeAction(sourceMechController, targetMechController, new List<Weapon>(sourceMech.Inventory.Weapons));
+        MeleeAction meleeAction2 = new MeleeAction(sourceMechController, targetMechController, new List<MeleeAttack>(sourceMech.Inventory.MeleeAttacks));
         actionPair.SetSecondaryAction(meleeAction2);
         yield return null;
 
@@ -183,7 +183,7 @@ public class TestActionsPlayMode
         MoveAction moveAction = new MoveAction(sourceMechController, new Vector3(5, 0, 5));
         ActionPair actionPair = new ActionPair(moveAction);
 
-        ChargeAction chargeAction = new ChargeAction(sourceMechController, targetMechController, new List<Weapon>(sourceMech.Inventory.Weapons));
+        ChargeAction chargeAction = new ChargeAction(sourceMechController, targetMechController, new List<MeleeAttack>(sourceMech.Inventory.MeleeAttacks));
         actionPair.SetSecondaryAction(chargeAction);
         yield return null;
 
@@ -229,7 +229,7 @@ public class TestActionsPlayMode
     public IEnumerator TestActionPair_SetSecondaryAction_ExistingSecondaryAction_MoveAction()
     {
         MoveAction moveAction = new MoveAction(sourceMechController, new Vector3(5, 0, 5));
-        MeleeAction meleeAction = new MeleeAction(sourceMechController, targetMechController, new List<Weapon>(sourceMech.Inventory.Weapons));
+        MeleeAction meleeAction = new MeleeAction(sourceMechController, targetMechController, new List<MeleeAttack>(sourceMech.Inventory.MeleeAttacks));
         ActionPair actionPair = new ActionPair(moveAction, meleeAction);
 
         LogAssert.Expect(LogType.Warning, "Secondary action cannot be of type Move. Please provide a valid action.");
@@ -247,7 +247,7 @@ public class TestActionsPlayMode
     public IEnumerator TestActionPair_SetSecondaryAction_ExistingSecondaryAction_NullAction()
     {
         MoveAction moveAction = new MoveAction(sourceMechController, new Vector3(5, 0, 5));
-        MeleeAction meleeAction = new MeleeAction(sourceMechController, targetMechController, new List<Weapon>(sourceMech.Inventory.Weapons));
+        MeleeAction meleeAction = new MeleeAction(sourceMechController, targetMechController, new List<MeleeAttack>(sourceMech.Inventory.MeleeAttacks));
         ActionPair actionPair = new ActionPair(moveAction, meleeAction);
 
         LogAssert.Expect(LogType.Warning, "Secondary action cannot be null. Please provide a valid action.");
@@ -273,7 +273,7 @@ public class TestActionsPlayMode
     [UnityTest]
     public IEnumerator TestReloadAction_CanExecute()
     {
-        ReloadAction reloadAction = new ReloadAction(sourceMechController, new List<Weapon>(sourceMech.Inventory.Weapons));
+        ReloadAction reloadAction = new ReloadAction(sourceMechController, new List<RangedAttack>(sourceMech.Inventory.RangedAttacks));
         ActionResult canExecute = reloadAction.CanExecute();
         yield return null;
 
@@ -283,7 +283,7 @@ public class TestActionsPlayMode
     [UnityTest]
     public IEnumerator TestReloadAction_CanExecute_FailingConditions()
     {
-        ReloadAction reloadAction = new ReloadAction(null, new List<Weapon> { sourceMech.Inventory.Weapons[0] });
+        ReloadAction reloadAction = new ReloadAction(null, new List<RangedAttack> { sourceMech.Inventory.RangedAttacks[0] });
         ActionResult canExecute = reloadAction.CanExecute();
         yield return null;
 
@@ -299,22 +299,22 @@ public class TestActionsPlayMode
     [UnityTest]
     public IEnumerator TestReloadAction_Execute()
     {
-        ReloadAction reloadAction = new ReloadAction(sourceMechController, new List<Weapon>(sourceMech.Inventory.Weapons));
-        sourceMech.Inventory.Weapons[0].ConsumeAmmo(5); // Consume some ammo to test reloading
-        sourceMech.Inventory.Weapons[0].UpdateCooldown(5f);
+        ReloadAction reloadAction = new ReloadAction(sourceMechController, new List<RangedAttack>(sourceMech.Inventory.RangedAttacks));
+        sourceMech.Inventory.RangedAttacks[0].ConsumeAmmo(5); // Consume some ammo to test reloading
+        sourceMech.Inventory.RangedAttacks[0].SetTimer(5f);
         yield return null;
 
-        Assert.AreNotEqual(sourceMech.Inventory.Weapons[0].CurrentAmmo, sourceMech.Inventory.Weapons[0].MaxAmmo);
+        Assert.AreNotEqual(sourceMech.Inventory.RangedAttacks[0].CurrentAmmo, sourceMech.Inventory.RangedAttacks[0].MaxAmmo);
         reloadAction.Execute();
         yield return null;
 
-        Assert.AreEqual(sourceMech.Inventory.Weapons[0].CurrentAmmo, sourceMech.Inventory.Weapons[0].MaxAmmo);
+        Assert.AreEqual(sourceMech.Inventory.RangedAttacks[0].CurrentAmmo, sourceMech.Inventory.RangedAttacks[0].MaxAmmo);
     }
 
     [UnityTest]
     public IEnumerator TestReloadAction_Execute_FailingConditions()
     {
-        ReloadAction reloadAction = new ReloadAction(null, new List<Weapon>(sourceMech.Inventory.Weapons));
+        ReloadAction reloadAction = new ReloadAction(null, new List<RangedAttack>(sourceMech.Inventory.RangedAttacks));
         ActionResult executed = reloadAction.Execute();
         //LogAssert.Expect(LogType.Warning, "ReloadAction cannot be executed because CanExecute() returned: NullInput.");
         yield return null;
@@ -332,21 +332,21 @@ public class TestActionsPlayMode
     [UnityTest]
     public IEnumerator TestReloadAction_Execute_AlreadyFullAmmo()
     {
-        ReloadAction reloadAction = new ReloadAction(sourceMechController, new List<Weapon>(sourceMech.Inventory.Weapons));
+        ReloadAction reloadAction = new ReloadAction(sourceMechController, new List<RangedAttack>(sourceMech.Inventory.RangedAttacks));
         ActionResult executed = reloadAction.Execute();
         yield return null;
 
         Assert.AreEqual(ActionResult.Success, executed);
-        Assert.AreEqual(sourceMech.Inventory.Weapons[0].CurrentAmmo, sourceMech.Inventory.Weapons[0].MaxAmmo);
+        Assert.AreEqual(sourceMech.Inventory.RangedAttacks[0].CurrentAmmo, sourceMech.Inventory.RangedAttacks[0].MaxAmmo);
     }
 
     [UnityTest]
     public IEnumerator TestReloadAction_Execute_WeaponOnCooldown()
     {
-        ReloadAction reloadAction = new ReloadAction(sourceMechController, new List<Weapon>{sourceMech.Inventory.Weapons[0]});
-        sourceMech.Inventory.Weapons[0].ConsumeAmmo(5); // Consume some ammo to test reloading
+        ReloadAction reloadAction = new ReloadAction(sourceMechController, new List<RangedAttack>{sourceMech.Inventory.RangedAttacks[0]});
+        sourceMech.Inventory.RangedAttacks[0].ConsumeAmmo(5); // Consume some ammo to test reloading
         ActionResult executed = reloadAction.Execute();
-        //LogAssert.Expect(LogType.Warning, $"{sourceMech.Name} cannot reload {sourceMech.Inventory.Weapons[0].Name} because it is on cooldown.");
+        //LogAssert.Expect(LogType.Warning, $"{sourceMech.Name} cannot reload {sourceMech.Inventory.RangedAttacks[0].Name} because it is on cooldown.");
         yield return null;
 
         Assert.AreNotEqual(ActionResult.Success, executed);
@@ -429,7 +429,7 @@ public class TestActionsPlayMode
     [UnityTest]
     public IEnumerator TestChargeAction_CanExecute()
     {
-        ChargeAction chargeAction = new ChargeAction(sourceMechController, targetMechController, new List<Weapon>(sourceMech.Inventory.Weapons));
+        ChargeAction chargeAction = new ChargeAction(sourceMechController, targetMechController, new List<MeleeAttack>(sourceMech.Inventory.MeleeAttacks));
         ActionResult canExecute = chargeAction.CanExecute();
         yield return null;
 
@@ -441,14 +441,14 @@ public class TestActionsPlayMode
     [UnityTest]
     public IEnumerator TestChargeAction_CanExecute_FailingConditions()
     {
-        ChargeAction chargeAction = new ChargeAction(null, targetMechController, new List<Weapon>(sourceMech.Inventory.Weapons));
+        ChargeAction chargeAction = new ChargeAction(null, targetMechController, new List<MeleeAttack>(sourceMech.Inventory.MeleeAttacks));
         ActionResult canExecute = chargeAction.CanExecute();
         //LogAssert.Expect(LogType.Warning, $"Cannot execute ChargeAction because the mech is null or dead.");
         yield return null;
 
         Assert.AreNotEqual(ActionResult.Success, canExecute);
 
-        ChargeAction chargeAction2 = new ChargeAction(sourceMechController, null, new List<Weapon>(sourceMech.Inventory.Weapons));
+        ChargeAction chargeAction2 = new ChargeAction(sourceMechController, null, new List<MeleeAttack>(sourceMech.Inventory.MeleeAttacks));
         ActionResult canExecute2 = chargeAction2.CanExecute();
         //LogAssert.Expect(LogType.Warning, $"Cannot execute ChargeAction because the target mech is null or dead.");
         yield return null;
@@ -462,7 +462,7 @@ public class TestActionsPlayMode
 
         Assert.AreNotEqual(ActionResult.Success, canExecute3);
 
-        ChargeAction chargeActionDeadSource = new ChargeAction(sourceMechController, targetMechController, new List<Weapon>(sourceMech.Inventory.Weapons));
+        ChargeAction chargeActionDeadSource = new ChargeAction(sourceMechController, targetMechController, new List<MeleeAttack>(sourceMech.Inventory.MeleeAttacks));
         sourceMechController.UpdateMechState(MechState.Dead);
         ActionResult canExecute4 = chargeActionDeadSource.CanExecute();
         //LogAssert.Expect(LogType.Warning, $"Cannot execute ChargeAction because the mech is null or dead.");
@@ -477,7 +477,7 @@ public class TestActionsPlayMode
         GameObject actionMarkerAssembler = new GameObject("ActionMarkerAssembler");
         actionMarkerAssembler.AddComponent<PseudoActionMarkerAssembler>();
 
-        ChargeAction chargeAction = new ChargeAction(sourceMechController, targetMechController, new List<Weapon>(sourceMech.Inventory.Weapons));
+        ChargeAction chargeAction = new ChargeAction(sourceMechController, targetMechController, new List<MeleeAttack>(sourceMech.Inventory.MeleeAttacks));
         ActionResult executed = chargeAction.Execute();
         yield return null;
 
@@ -492,14 +492,14 @@ public class TestActionsPlayMode
     [UnityTest]
     public IEnumerator TestChargeAction_Execute_FailingConditions()
     {
-        ChargeAction chargeAction = new ChargeAction(null, targetMechController, new List<Weapon>(sourceMech.Inventory.Weapons));
+        ChargeAction chargeAction = new ChargeAction(null, targetMechController, new List<MeleeAttack>(sourceMech.Inventory.MeleeAttacks));
         ActionResult executed = chargeAction.Execute();
         //LogAssert.Expect(LogType.Warning, $"Cannot execute ChargeAction because the mech is null or dead.");
         yield return null;
 
         Assert.AreNotEqual(ActionResult.Success, executed);
 
-        ChargeAction chargeAction2 = new ChargeAction(sourceMechController, null, new List<Weapon>(sourceMech.Inventory.Weapons));
+        ChargeAction chargeAction2 = new ChargeAction(sourceMechController, null, new List<MeleeAttack>(sourceMech.Inventory.MeleeAttacks));
         ActionResult executed2 = chargeAction2.Execute();
         //LogAssert.Expect(LogType.Warning, $"Cannot execute ChargeAction because the target mech is null or dead.");
         yield return null;
@@ -518,7 +518,7 @@ public class TestActionsPlayMode
     public IEnumerator TestChargeAction_Execute_AlreadyCharging()
     {
         sourceMechController.UpdateMechState(MechState.Charging);
-        ChargeAction chargeAction = new ChargeAction(sourceMechController, targetMechController, new List<Weapon>(sourceMech.Inventory.Weapons));
+        ChargeAction chargeAction = new ChargeAction(sourceMechController, targetMechController, new List<MeleeAttack>(sourceMech.Inventory.MeleeAttacks));
         ActionResult executed = chargeAction.Execute();
         yield return null;
 

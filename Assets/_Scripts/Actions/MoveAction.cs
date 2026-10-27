@@ -2,12 +2,16 @@ using UnityEngine;
 using HeartOfIron.Enums;
 using UnityEngine.AI;
 
+/// <summary>
+/// Represents a movement action performed by a mech, allowing it to move to a specified destination.
+/// </summary>
 public class MoveAction : MovementAction
 {
     public MoveAction(MechController sourceMech, Vector3 destination) : base(ActionType.Move, sourceMech, destination)
     {
     }
 
+    /// <inheritdoc/>
     public override ActionResult Execute()
     {
         ActionResult canExecuteResult = CanExecute();
@@ -22,6 +26,7 @@ public class MoveAction : MovementAction
         return ActionResult.Success;
     }
 
+    /// <inheritdoc/>
     public override ActionResult CanExecute()
     {
         if (SourceMech == null)

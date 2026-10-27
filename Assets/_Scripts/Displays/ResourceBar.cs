@@ -4,6 +4,10 @@ using System;
 using TMPro;
 using UnityEngine.UI;
 
+/// <summary>
+/// Updates a resource bar in the UI with the current and maximum resource values, optionally displaying text and using a gradient color.
+/// This class is intended to interface with an element in the UI to display resource information.
+/// </summary>
 [Serializable]
 [SelectionBase]
 public class ResourceBar : MonoBehaviour

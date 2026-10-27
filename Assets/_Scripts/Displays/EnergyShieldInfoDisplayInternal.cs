@@ -2,6 +2,12 @@ using UnityEngine;
 using TMPro;
 using HeartOfIron.Enums;
 using System;
+
+/// <summary>
+/// Displays detailed information about a specific energy shield in the UI.
+/// Updates the UI elements with the shield's name, weight, max capacity, recharge rate, and recharge delay.
+/// This class is intended to interface with a specific element in the UI to display energy shield information.
+/// </summary>
 public class EnergyShieldInfoDisplayInternal : MonoBehaviour
 {
     

@@ -1,7 +1,16 @@
 using UnityEngine;
 
+/// <summary>
+/// Assembles items based on their blueprints.
+/// Provides functionality to create Armor, Energy Shields, Weapons, and Mechs from their respective blueprints.
+/// </summary>
 public static class ItemAssembler
 {
+    /// <summary>
+    /// Assembles an item based on its blueprint.
+    /// </summary>
+    /// <param name="blueprint">The blueprint of the item to assemble.</param>
+    /// <returns>The assembled item, or null if the blueprint is for a mech or unknown type.</returns>
     public static Item AssembleItem(ItemBlueprint blueprint)
     {
         if (blueprint is ArmorBlueprint aB)
@@ -47,7 +56,6 @@ public static class ItemAssembler
     /// <summary>
     /// Stat changers for Armor. These methods adjust the resistance, coverage, defense rating, and max durability of an armor based on random chance.
     /// </summary>
-
     private static float AdjustResistance(float baseResistance)
     {
         // 10% chance to increase resistance by 10% - 25%
