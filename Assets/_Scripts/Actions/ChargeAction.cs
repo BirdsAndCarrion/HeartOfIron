@@ -2,9 +2,17 @@ using UnityEngine;
 using System.Collections.Generic;
 using HeartOfIron.Enums;
 
+/// <summary>
+/// Represents a charge action performed by a mech, which involves moving towards a target mech and executing melee attacks.
+/// This class handles the execution and validation of charge actions, ensuring that the mech can perform the charge and creating action markers as needed.
+/// It extends the MovementAction class and incorporates melee attacks as part of the charge sequence.
+/// The ChargeAction will chase the target mech until it reaches the destination or is interrupted and will then execute the melee attacks against the target mech.
+/// </summary>
 public class ChargeAction : MovementAction
 {
-
+    /// <summary>
+    /// List of melee attacks to be executed upon reaching the target mech.
+    /// </summary>
     private List<MeleeAttack> _attacks;
 
     public ChargeAction(MechController sourceMech, MechController targetMech, List<MeleeAttack> attacks) : base(ActionType.Charge, sourceMech, targetMech != null ? targetMech.transform.position : Vector3.zero, targetMech)
@@ -12,6 +20,7 @@ public class ChargeAction : MovementAction
         _attacks = attacks;
     }
 
+    /// <inheritdoc/>
     public override ActionResult Execute()
     {
         ActionResult canExecuteResult = CanExecute();
@@ -49,6 +58,7 @@ public class ChargeAction : MovementAction
         }
     }
 
+    /// <inheritdoc/>
     public override ActionResult CanExecute()
     {
         if (SourceMech == null || TargetMech == null || _attacks == null)

@@ -5,6 +5,9 @@ using HeartOfIron.Enums;
 using System.Collections.Generic;
 using UnityEngine.InputSystem;
 
+/// <summary>
+/// Manages the Mess Hall UI, including displaying pilot options, showing pilot info, and handling mech assignments.
+/// </summary>
 public class MessHallUIManager : MonoBehaviour
 {
 
@@ -45,6 +48,13 @@ public class MessHallUIManager : MonoBehaviour
         ShowPilotOptions();
     }
 
+    /// <summary>
+    /// Displays the list of available pilots as buttons in the pilot options display panel.
+    /// </summary>
+    /// <remarks>
+    /// This method clears any existing pilot buttons and creates new ones for each pilot in the player's roster.
+    /// It also spawns a lilGuy for each pilot.
+    /// </remarks>
     void ShowPilotOptions()
     {
         foreach (Transform child in pilotOptionsDisplayPanel.transform)
@@ -61,12 +71,20 @@ public class MessHallUIManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Handles the event when a pilot button is clicked and updates the selected pilot.
+    /// </summary>
+    /// <param name="pilot">The pilot that was clicked.</param>
     void OnPilotButtonClicked(Pilot pilot)
     {
         selectedPilot = pilot;
         ShowPilotInfo(pilot);
     }
 
+    /// <summary>
+    /// Displays detailed information about the selected pilot, including skills and assigned mech.
+    /// </summary>
+    /// <param name="pilot">The pilot whose information is to be displayed.</param>
     void ShowPilotInfo(Pilot pilot)
     {
         pilotNameField.text = pilot.Name;
@@ -90,6 +108,9 @@ public class MessHallUIManager : MonoBehaviour
         ShowAssignedMechDropdown();
     }
 
+    /// <summary>
+    /// Displays the dropdown for assigning a mech to the selected pilot.
+    /// </summary>
     private void ShowAssignedMechDropdown()
     {
         assignedMechDropdown.ClearOptions();
@@ -117,6 +138,10 @@ public class MessHallUIManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Handles the event when the level up skill button is clicked for a specific skill of the selected pilot.
+    /// </summary>
+    /// <param name="skillIndex">The index of the skill to level up.</param>
     public void OnLevelUpSkillButtonClicked(int skillIndex)
     {
         if (selectedPilot != null)
@@ -127,6 +152,10 @@ public class MessHallUIManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Handles the event when the increase skill bonus button is clicked for a specific skill of the selected pilot.
+    /// </summary>
+    /// <param name="skillIndex">The index of the skill to increase the bonus for.</param>
     public void OnIncreaseSkillBonusButtonClicked(int skillIndex)
     {
         if (selectedPilot != null)
@@ -137,6 +166,10 @@ public class MessHallUIManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Spawns a lilGuy prefab representing the specified pilot at a random position within the terrain bounds.
+    /// </summary>
+    /// <param name="pilot">The pilot to represent with the lilGuy prefab.</param>
     void SpawnLilGuy(Pilot pilot)
     {
         // Spawn a lilGuy prefab at a random position within the terrain bounds
@@ -160,6 +193,9 @@ public class MessHallUIManager : MonoBehaviour
         // TODO: Add a component to the lilGuy prefab that gives it a basic state machine for animations and behaviors, if desired.
     }
 
+    /// <summary>
+    /// Updates the name of the selected pilot based on the input field and updates the corresponding lilGuy in the scene.
+    /// </summary>
     public void UpdatePilotName()
     {
         if (selectedPilot != null)
@@ -176,18 +212,27 @@ public class MessHallUIManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Switches the controls to typing mode, deactivating other input.
+    /// </summary>
     public void SwitchControlsToTyping()
     {
         pi.DeactivateInput(); // Deactivate other controls to allow typing
         Debug.Log("Switched controls to typing mode.");
     }
 
+    /// <summary>
+    /// Switches from typing mode back to controls, reactivating other input.
+    /// </summary>
     public void SwitchTypingToControls()
     {
         pi.ActivateInput(); // Reactivate other controls after typing
         Debug.Log("Switched typing mode to controls.");
     }
 
+    /// <summary>
+    /// Handles the event when the assigned mech dropdown value is changed for the selected pilot.
+    /// </summary>
     public void OnAssignedMechChanged()
     {
         if (selectedPilot != null && assignedMechDropdown != null)

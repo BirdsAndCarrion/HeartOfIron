@@ -3,6 +3,16 @@ using System;
 using System.Collections.Generic;
 using HeartOfIron.Enums;
 
+/// <summary>
+/// Represents the inventory of a mech, containing weapons, armors, an energy shield, and their associated attacks.
+/// Provides methods for setting timers and updating cooldowns for the attacks.
+/// Provides methods for managing the inventory, including adding and removing items.
+/// Also designates attacks based on the equipped weapons.
+/// </summary>
+/// <remarks>
+/// The inventory manages most of the relationships between the mech and its equipped item, including attack designation and cooldown management.
+/// Not all of the inventory's slots are meant to be used on every mech (i.e. some mechs may not have an energy shield or may not have armor).
+/// </remarks>
 [Serializable]
 public class Inventory
 {
@@ -34,12 +44,21 @@ public class Inventory
         _weaponToMeleeAttackMap = new Dictionary<Weapon, MeleeAttack>();
     }
 
+    /// <summary>
+    /// Sets the timer for the specified weapon's attacks.
+    /// </summary>
+    /// <param name="weapon">The weapon whose attacks' timers are to be set.</param>
+    /// <param name="timerValue">The value to set the timer to.</param>
     public void SetTimer(Weapon weapon,float timerValue)
     {
         _weaponToRangedAttackMap[weapon]?.SetTimer(timerValue);
         _weaponToMeleeAttackMap[weapon]?.SetTimer(timerValue);
     }
 
+    /// <summary>
+    /// Updates the cooldown timers for all ranged and melee attacks in the inventory.
+    /// </summary>
+    /// <param name="deltaTime"></param>
     public void UpdateCooldowns(float deltaTime)
     {
         foreach (RangedAttack rA in _rangedAttacks)
@@ -58,6 +77,10 @@ public class Inventory
         }
     }
 
+    /// <summary>
+    /// Designates the attacks for the currently equipped weapons, updating the lists and maps accordingly.
+    /// This method should be called whenever the equipped weapons change to ensure the attack lists and maps are accurate.
+    /// </summary>
     private void DesignateAttacks()
     {
         if (_weapons[(int)Hand.Right] == null && _weapons[(int)Hand.Left] == null)
@@ -164,6 +187,11 @@ public class Inventory
         DesignateAttacks();
     }
 
+    /// <summary>
+    /// Checks if the inventory contains the specified item.
+    /// </summary>
+    /// <param name="item">The item to check for in the inventory.</param>
+    /// <returns>True if the item is present in the inventory, false otherwise.</returns>
     public bool HasItem(Item item)
     {
         if (item is Weapon weapon)
@@ -196,6 +224,12 @@ public class Inventory
         return false;
     }
 
+    /// <summary>
+    /// Attempts to equip the specified weapon to the inventory for the given owner mech.
+    /// </summary>
+    /// <param name="weapon">The weapon to equip.</param>
+    /// <param name="owner">The mech that owns the inventory.</param>
+    /// <returns>True if the weapon was successfully equipped, false otherwise.</returns>
     public bool EquipWeapon(Weapon weapon, Mech owner)
     {
         if (!CanEquipItem(weapon))
@@ -243,6 +277,10 @@ public class Inventory
         return false;
     }
 
+    /// <summary>
+    /// Unequips the specified weapon from the inventory.
+    /// </summary>
+    /// <param name="weapon">The weapon to unequip.</param>
     public void UnequipWeapon(Weapon weapon)
     {
         if (_weapons[(int)Hand.Right] == weapon)
@@ -258,6 +296,12 @@ public class Inventory
         DesignateAttacks(); // Update attacks after unequipping a weapon
     }
 
+    /// <summary>
+    /// Attempts to equip the specified armor to the inventory for the given owner mech.
+    /// </summary>
+    /// <param name="armor">The armor to equip.</param>
+    /// <param name="owner">The mech that owns the inventory.</param>
+    /// <returns>True if the armor was successfully equipped, false otherwise.</returns>
     public bool EquipArmor(Armor armor, Mech owner)
     {
         if (!CanEquipItem(armor) && !CanEquipArmor(armor))
@@ -277,6 +321,11 @@ public class Inventory
         return false;
     }
 
+    /// <summary>
+    /// Checks if the specified armor can be equipped in the inventory.
+    /// </summary>
+    /// <param name="armor">The armor to check.</param>
+    /// <returns>True if the armor can be equipped, false otherwise.</returns>
     private bool CanEquipArmor(Armor armor)
     {
         if (armor == null)
@@ -305,6 +354,10 @@ public class Inventory
         return false;
     }
 
+    /// <summary>
+    /// Unequips the specified armor from the inventory.
+    /// </summary>
+    /// <param name="armor">The armor to unequip.</param>
     public void UnequipArmor(Armor armor)
     {
         for (int i = 0; i < _armors.Length; i++)
@@ -319,6 +372,12 @@ public class Inventory
         Debug.LogWarning("Cannot unequip armor: The specified armor is not currently equipped.");
     } 
 
+    /// <summary>
+    /// Attempts to equip the specified energy shield to the inventory for the given owner mech.
+    /// </summary>
+    /// <param name="energyShield">The energy shield to equip.</param>
+    /// <param name="owner">The mech that owns the inventory.</param>
+    /// <returns>True if the energy shield was successfully equipped, false otherwise.</returns>
     public bool EquipEnergyShield(EnergyShield energyShield, Mech owner)
     {
         if (!CanEquipItem(energyShield) && !CanEquipEnergyShield(energyShield))
@@ -335,6 +394,11 @@ public class Inventory
         return false;
     }
 
+    /// <summary>
+    /// Checks if the specified energy shield can be equipped in the inventory.
+    /// </summary>
+    /// <param name="energyShield">The energy shield to check.</param>
+    /// <returns>True if the energy shield can be equipped, false otherwise.</returns>
     private bool CanEquipEnergyShield(EnergyShield energyShield)
     {
         if (energyShield == null)
@@ -358,6 +422,10 @@ public class Inventory
         return true;
     }
 
+    /// <summary>
+    /// Unequips the specified energy shield from the inventory.
+    /// </summary>
+    /// <param name="energyShield">The energy shield to unequip.</param>
     public void UnequipEnergyShield(EnergyShield energyShield)
     {
         if (_energyShield == energyShield)
@@ -369,6 +437,11 @@ public class Inventory
         Debug.LogWarning("Cannot unequip energy shield: The specified energy shield is not currently equipped.");
     }
 
+    /// <summary>
+    /// Checks if the specified item can be equipped in the inventory.
+    /// </summary>
+    /// <param name="item">The item to check.</param>
+    /// <returns>True if the item can be equipped, false otherwise.</returns>
     public bool CanEquipItem(Item item)
     {
         if (item == null)
@@ -383,6 +456,11 @@ public class Inventory
         return true;
     }
 
+    /// <summary>
+    /// Gets the ideal attack based on the specified distance.
+    /// </summary>
+    /// <param name="distance">The distance to the target.</param>
+    /// <returns>The ideal attack for the given distance.</returns>
     public Attack GetIdealAttack(float distance)
     {
         MeleeAttack idealMeleeAttack = GetIdealMeleeAttack(distance);
@@ -394,6 +472,11 @@ public class Inventory
         return idealMeleeAttack.GetAverageDamage(distance) > idealRangedAttack.GetAverageDamage(distance) ? (Attack)idealMeleeAttack : (Attack)idealRangedAttack;
     }
 
+    /// <summary>
+    /// Gets the ideal ranged attack based on the specified distance.
+    /// </summary>
+    /// <param name="distance">The distance to the target.</param>
+    /// <returns>The ideal ranged attack for the given distance.</returns>
     public RangedAttack GetIdealRangedAttack(float distance)
     {
         RangedAttack idealRangedAttack = _rangedAttacks.Count > 0 ? _rangedAttacks[0] : null;
@@ -409,6 +492,11 @@ public class Inventory
         return idealRangedAttack;
     }
 
+    /// <summary>
+    /// Gets the ideal melee attack based on the specified distance.
+    /// </summary>
+    /// <param name="distance">The distance to the target.</param>
+    /// <returns>The ideal melee attack for the given distance.</returns>
     public MeleeAttack GetIdealMeleeAttack(float distance)
     {
         MeleeAttack idealMeleeAttack = null;
@@ -424,6 +512,10 @@ public class Inventory
         return idealMeleeAttack;
     }
 
+    /// <summary>
+    /// Gets a string representation of the inventory, including weapons, armors, and energy shields.
+    /// </summary>
+    /// <returns>A string containing the inventory information.</returns>   
     public string GetInfo()
     {
         string info = "Inventory:\n";

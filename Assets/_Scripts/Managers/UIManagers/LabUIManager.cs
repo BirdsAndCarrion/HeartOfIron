@@ -4,7 +4,9 @@ using UnityEngine.UI;
 using TMPro;
 using HeartOfIron.Enums;
 
-
+/// <summary>
+/// Manages the UI for the laboratory, including research options, item filtering, and research functionality.
+/// </summary>
 public class LabUIManager : MonoBehaviour
 {
     [SerializeField] private GameObject _labNavButton;
@@ -12,6 +14,9 @@ public class LabUIManager : MonoBehaviour
     [SerializeField] private GameObject _researchOptionPrefab;
     [SerializeField] private TextMeshProUGUI _researchInfoText;
     private Item _selectedItem;
+    /// <summary>
+    /// The list of item types currently selected for filtering in the research options.
+    /// </summary>
     private List<ItemType> _itemTypes = new List<ItemType> { ItemType.Weapon, ItemType.Armor, ItemType.EnergyShield };
 
     void Start()
@@ -20,6 +25,9 @@ public class LabUIManager : MonoBehaviour
         UpdateResearchOptions();
     }
 
+    /// <summary>
+    /// Shows and updates the available research options based on the current item type filters.
+    /// </summary>
     void UpdateResearchOptions()
     {
         // Clear existing options
@@ -50,6 +58,11 @@ public class LabUIManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Handles the event when a research option is selected.
+    /// Updates the research info text and sets the selected item.
+    /// </summary>
+    /// <param name="item">The item that was selected for research.</param>
     void OnResearchOptionSelected(Item item)
     {
         _researchInfoText.text = item.GetDescription();
@@ -58,6 +71,10 @@ public class LabUIManager : MonoBehaviour
         // Debug.Log($"Selected research option: {item.Name}");
     }
 
+    /// <summary>
+    /// Handles the event when the weapon filter button is clicked and updates the filter state.
+    /// </summary>
+    /// <param name="button">The GameObject representing the weapon filter button that was clicked.</param>
     public void OnWeaponFilterButtonClicked(GameObject button)
     {
         if (_itemTypes.Contains(ItemType.Weapon))
@@ -71,6 +88,10 @@ public class LabUIManager : MonoBehaviour
         UpdateResearchOptions();
     }
 
+    /// <summary>
+    /// Handles the event when the armor filter button is clicked and updates the filter state.
+    /// </summary>
+    /// <param name="button">The GameObject representing the armor filter button that was clicked.</param>
     public void OnArmorFilterButtonClicked(GameObject button)
     {
         if (_itemTypes.Contains(ItemType.Armor))
@@ -84,6 +105,10 @@ public class LabUIManager : MonoBehaviour
         UpdateResearchOptions();
     }
 
+    /// <summary>
+    /// Handles the event when the energy shield filter button is clicked and updates the filter state.
+    /// </summary>
+    /// <param name="button">The GameObject representing the energy shield filter button that was clicked.</param>
     public void OnEnergyShieldFilterButtonClicked(GameObject button)
     {
         if (_itemTypes.Contains(ItemType.EnergyShield))
@@ -97,6 +122,9 @@ public class LabUIManager : MonoBehaviour
         UpdateResearchOptions();
     }
 
+    /// <summary>
+    /// Handles the event when the research button is clicked and initiates the research process for the selected item.
+    /// </summary>
     public void OnResearchButtonClicked()
     {
         // This method can be used to handle the research button click event

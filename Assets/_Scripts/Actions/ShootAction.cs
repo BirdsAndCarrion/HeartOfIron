@@ -2,6 +2,15 @@ using UnityEngine;
 using HeartOfIron.Enums;
 using System.Collections.Generic;
 
+/// <summary>
+/// Represents a shoot action performed by a mech, which involves firing ranged attacks at a target mech.
+/// This class handles the execution and validation of the attacks, ensuring that the ranged attacks can be fired and applying the shooting logic.
+/// </summary>
+/// <remarks>
+/// The ShootAction class extends the AttackAction class and specifically deals with ranged combat.
+/// It validates the ranged attacks, checks for firing angles, weapon range, and cooldowns.
+/// Actual shooting is handled by the ShootProjectile component associated with the weapon and projectiles that apply damage to the target mech on collision.
+/// </remarks>
 public class ShootAction : AttackAction
 {
     
@@ -13,6 +22,7 @@ public class ShootAction : AttackAction
     {
     }
 
+    /// <inheritdoc/>
     public override ActionResult Execute()
     {
         ActionResult canExecuteResult = CanExecute();
@@ -87,6 +97,11 @@ public class ShootAction : AttackAction
         return ActionResult.Failure;
     }
 
+    /// <summary>
+    /// Retrieves the ShootProjectile component associated with the specified weapon name from the source mech.
+    /// </summary>
+    /// <param name="name">The name of the weapon for which to retrieve the ShootProjectile component.</param>
+    /// <returns>The ShootProjectile component if found; otherwise, null.</returns>
     private ShootProjectile GetShootProjectile(string name)
     {
         ShootProjectile[] shootProjectiles = SourceMech.ShootProjectiles;
@@ -100,6 +115,13 @@ public class ShootAction : AttackAction
         return null;
     }
 
+    /// <summary>
+    /// Calculates the spread direction for a projectile based on the given direction, distance, and ranged attack.
+    /// </summary>
+    /// <param name="direction">The initial direction of the projectile.</param>
+    /// <param name="distance">The distance to the target.</param>
+    /// <param name="r">The ranged attack being used.</param>
+    /// <returns>The adjusted direction vector accounting for spread.</returns>
     private Vector3 GetSpreadDirection(Vector3 direction, float distance, RangedAttack r)
     {
         float spread = r.CalculateSpread(distance) * SPREAD_MULTIPLIER;
@@ -110,6 +132,10 @@ public class ShootAction : AttackAction
         return spreadDirection;
     }
 
+    /// <summary>
+    /// Retrieves a viable target limb from the target mech that is not obstructed by other objects.
+    /// </summary>
+    /// <returns>The transform of a viable target limb if found; otherwise, null.</returns>
     private Transform GetTargetLimb()
     {
         List<Transform> targetLimbs = TargetMech.Limbs;
@@ -130,6 +156,7 @@ public class ShootAction : AttackAction
         return viableTargetLimb;
     }
 
+    /// <inheritdoc/>
     public override ActionResult CanExecute()
     {
         if (SourceMech == null || TargetMech == null || Attacks == null || Attacks.Count == 0)

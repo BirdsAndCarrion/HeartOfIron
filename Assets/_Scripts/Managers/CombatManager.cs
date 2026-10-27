@@ -2,15 +2,44 @@ using UnityEngine;
 using System.Collections.Generic;
 using HeartOfIron.Enums;
 
+/// <summary>
+/// Manages combat logic, including player and enemy mechs, combat state, and rewards.
+/// Handles the flow of combat, including starting and ending combat, calculating rewards, and updating the combat timer.
+/// Also manages the active mech, enemy mech, and tracks destroyed enemies.
+/// Provides methods to start and end combat, and calculate rewards based on combat outcomes.
+/// </summary>
+/// <remarks>
+/// This manager assumes the presence of an EventRouter for handling combat-related events.
+/// It works in conjunction with the UnitManager and EnemyLogicManager to manage the state and behavior of mechs during combat.
+/// It relies on CombatUIManager to handle the user interface aspects of combat, such as displaying the combat timer and combat state.
+/// </remarks>
 public class CombatManager : MonoBehaviour
 {
     public static CombatManager Instance { get; private set; }
+    /// <summary>
+    /// The maximum number of player mechs allowed in combat.
+    /// </summary>
     [SerializeField] private int PLAYER_MECH_LIMIT = 3;
+    /// <summary>
+    /// The width of the terrain for combat.
+    /// </summary>
     [SerializeField] private int TERRAIN_WIDTH = 1000;
+    /// <summary>
+    /// The length of the terrain for combat.
+    /// </summary>
     [SerializeField] private int TERRAIN_LENGTH = 1000;
 
+    /// <summary>
+    /// The reward given for each destroyed enemy.
+    /// </summary>
     [SerializeField] private int REWARD_PER_DESTROYED_ENEMY = 100;
+    /// <summary>
+    /// The reward given for surviving combat.
+    /// </summary>
     [SerializeField] private int REWARD_FOR_SURVIVAL = 350;
+    /// <summary>
+    /// The multiplier applied if all enemies are destroyed to complete the mission.
+    /// </summary>
     [SerializeField] private float MULTIPLIER_FOR_DESTROYING_ALL_ENEMIES = 1.5f;
 
     private MechController _activeMech;
@@ -64,6 +93,13 @@ public class CombatManager : MonoBehaviour
         EventRouter.UnregisterFromHub(this);
     }
 
+    /// <summary>
+    /// Starts the combat by creating enemy mechs, spawning the extraction zone, and initializing the enemy logic.
+    /// </summary>
+    /// <remarks>
+    /// This method assumes that the enemy mechs are created for testing purposes and that the extraction zone is properly spawned.
+    /// It also adds the enemy mechs to the EnemyLogicManager's graph for AI behavior.
+    /// </remarks>
     void StartCombat()
     {
         CreateTestEnemyMechs();
@@ -73,6 +109,10 @@ public class CombatManager : MonoBehaviour
         UpdateCombatState(CombatState.Paused);
     }
 
+    /// <summary>
+    /// Ends the combat based on the specified end condition, calculates rewards, and handles cleanup of player and enemy mechs.
+    /// </summary>
+    /// <param name="endCondition">The condition that determines how the combat ended (e.g., Victory, Defeat, Survived).</param>
     public void EndCombat(EndCondition endCondition)
     {
         int rewards = CalculateRewards(endCondition);
@@ -92,6 +132,11 @@ public class CombatManager : MonoBehaviour
         UpdateCombatState(CombatState.GameOver);
     }
 
+    /// <summary>
+    /// Calculates the rewards based on the end condition and destroyed enemies.
+    /// </summary>
+    /// <param name="endCondition">The condition that determines how the combat ended.</param>
+    /// <returns>The total rewards calculated.</returns>
     int CalculateRewards(EndCondition endCondition)
     {
         int rewards = destroyedEnemies.Count * REWARD_PER_DESTROYED_ENEMY;
@@ -107,6 +152,9 @@ public class CombatManager : MonoBehaviour
         return rewards;
     }
 
+    /// <summary>
+    /// Updates the combat timer if the combat is in the playing state.
+    /// </summary>
     void Update()
     {
         if (_combatState == CombatState.Playing)
@@ -115,6 +163,10 @@ public class CombatManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Sets the specified mech as the active mech.
+    /// </summary>
+    /// <param name="mechController">The mech controller to set as active.</param>
     public void SetActiveMech(MechController mechController)
     {
         if (mechController == null)
@@ -126,6 +178,9 @@ public class CombatManager : MonoBehaviour
         Debug.Log($"Active Mech set to: {_activeMech.Mech.Name}");
     }
 
+    /// <summary>
+    /// Toggles the active mech to the next available player mech.
+    /// </summary>
     public void ToggleActiveMech()
     {
         if (_activeMech != null)
@@ -137,6 +192,10 @@ public class CombatManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Updates the combat state to the specified new state and triggers the corresponding event.
+    /// </summary>
+    /// <param name="newState">The new combat state to set.</param>
     public void UpdateCombatState(CombatState newState)
     {
         _combatState = newState;
@@ -144,6 +203,10 @@ public class CombatManager : MonoBehaviour
         EventRouter.OnCombatStateChanged?.Invoke(_combatState);
     }
 
+    /// <summary>
+    /// Handles the destruction of a mech, updating player and enemy lists, and ending combat if necessary.
+    /// </summary>
+    /// <param name="mechController">The mech controller that was destroyed.</param>
     public void HandleMechDestroyed(MechController mechController)
     {
         if (mechController == null)
@@ -181,6 +244,11 @@ public class CombatManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Checks if the specified position is valid for unit placement within the deployment area.
+    /// </summary>
+    /// <param name="position">The position to check.</param>
+    /// <returns>True if the position is valid, false otherwise.</returns>
     public bool IsValidPlacementPosition(Vector3 position)
     {
         if (position.x < TERRAIN_WIDTH / 4 || position.x > 3 * TERRAIN_WIDTH / 4 || position.z > TERRAIN_LENGTH / 4)
@@ -191,6 +259,12 @@ public class CombatManager : MonoBehaviour
         return true;
     }
 
+    /// <summary>
+    /// Attempts to place a unit at the specified position if it is valid.
+    /// </summary>
+    /// <param name="mechData">The mech data for the unit to place.</param>
+    /// <param name="position">The position to place the unit at.</param>
+    /// <returns>True if the unit was successfully placed, false otherwise.</returns>
     public bool TryPlaceUnitAtPosition(Mech mechData, Vector3 position)
     {
         // Implement logic to check if the position is valid for unit placement
@@ -215,6 +289,10 @@ public class CombatManager : MonoBehaviour
         return true;
     }
 
+    /// <summary>
+    /// Adds a player mech to the list of player mechs, ensuring it does not exceed the limit.
+    /// </summary>
+    /// <param name="mechController">The mech controller to add.</param>
     void AddPlayerMech(MechController mechController)
     {
         if (mechController == null)
@@ -245,6 +323,10 @@ public class CombatManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Removes a player mech from the list of player mechs and destroys its game object.
+    /// </summary>
+    /// <param name="mechController">The mech controller to remove.</param>
     void RemovePlayerMech(MechController mechController)
     {
         if (_playerMechs.Contains(mechController))
@@ -259,6 +341,10 @@ public class CombatManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Adds an enemy mech to the list of enemy mechs.
+    /// </summary>
+    /// <param name="mechController">The mech controller to add.</param>
     void AddEnemyMech(MechController mechController)
     {
         if (!_enemyMechs.Contains(mechController))
@@ -268,6 +354,9 @@ public class CombatManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Creates and adds test enemy mechs to the battlefield.
+    /// </summary>
     void CreateTestEnemyMechs()
     {
         for (int i = 0; i < 3; i++)
@@ -287,6 +376,9 @@ public class CombatManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Spawns the extraction zone at a valid position on the battlefield.
+    /// </summary>
     void SpawnExtractionZone()
     {
         do
@@ -303,6 +395,10 @@ public class CombatManager : MonoBehaviour
         } while (true);
     }
 
+    /// <summary>
+    /// Retrieves the list of enemy mechs that are currently visible.
+    /// </summary>
+    /// <returns>A list of visible enemy mech controllers.</returns>
     public List<MechController> GetVisibleEnemyMechs()
     {
         return EnemyLogicManager.Instance.GetVisibleEnemyMechs();

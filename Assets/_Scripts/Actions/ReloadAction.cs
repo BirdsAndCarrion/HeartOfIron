@@ -2,12 +2,17 @@ using UnityEngine;
 using HeartOfIron.Enums;
 using System.Collections.Generic;
 
+/// <summary>
+/// Represents a reload action performed by a mech, which involves reloading ranged attacks.
+/// This class handles the execution and validation of reload actions, ensuring that the ranged attacks can be reloaded and applying the reload logic.
+/// </summary>
 public class ReloadAction : AttackAction
 {
     public ReloadAction(MechController sourceMech, List<RangedAttack> attacks) : base(ActionType.Reload, sourceMech, null, attacks)
     {
     }
 
+    /// <inheritdoc/>
     public override ActionResult Execute()
     {
         ActionResult canExecuteResult = CanExecute();
@@ -44,6 +49,7 @@ public class ReloadAction : AttackAction
         return ActionResult.Retry;
     }
 
+    /// <inheritdoc/>
     public override ActionResult CanExecute()
     {
         if (SourceMech == null || Attacks == null || Attacks.Count == 0)
