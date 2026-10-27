@@ -3,17 +3,37 @@ using System;
 using HeartOfIron.Enums;
 using HeartOfIron.Structs;
 
+/// <summary>
+/// Represents an energy shield item that provides a protective energy barrier for the mech.
+/// Contains functions for managing the shield's capacity, recharge, and damage absorption.
+/// Provides methods for taking damage and repairing the shield over time.
+/// </summary>
 [Serializable]
 public class EnergyShield : Item
 {
+    /// <summary>
+    /// The maximum capacity of the energy shield.
+    /// </summary>
     [SerializeField] private float maxCapacity;
     public float MaxCapacity => maxCapacity;
+    /// <summary>
+    /// The current capacity of the energy shield.
+    /// </summary>
     [SerializeField] private float currentCapacity;
     public float CurrentCapacity => currentCapacity;
+    /// <summary>
+    /// The rate at which the energy shield recharges per second.
+    /// </summary>
     [SerializeField] private float rechargeRate;
     public float RechargeRate => rechargeRate;
+    /// <summary>
+    /// The delay before the energy shield starts recharging after taking damage.
+    /// </summary>
     [SerializeField] private float rechargeDelay;
     public float RechargeDelay => rechargeDelay;
+    /// <summary>
+    /// The current timer tracking the delay before the energy shield starts recharging.
+    /// </summary>
     [SerializeField] private float rechargeTimer;
     public float RechargeTimer => rechargeTimer;
 
@@ -27,6 +47,10 @@ public class EnergyShield : Item
         this.rechargeTimer = 0f; // Initialize recharge timer to 0
     }
 
+    /// <summary>
+    /// Updates the recharge state of the energy shield based on the elapsed time.
+    /// </summary>
+    /// <param name="deltaTime">The time elapsed since the last update, in seconds.</param>
     public void UpdateRecharge(float deltaTime)
     {
         if (currentCapacity < maxCapacity)
@@ -55,6 +79,12 @@ public class EnergyShield : Item
         }
     }
 
+    /// <summary>
+    /// Applies damage to the energy shield, reducing its current capacity.
+    /// </summary>
+    /// <param name="damageAmount">The amount of damage to apply to the shield.</param>
+    /// <param name="location">The location of the damage (optional, default is 0).</param>
+    /// <returns>The remaining damage that goes through the shield after absorption.</returns>
     public float TakeDamage(float damageAmount, int location = 0)
     {
         if (currentCapacity > 0)
@@ -74,6 +104,11 @@ public class EnergyShield : Item
         }
     }
 
+    /// <summary>
+    /// Repairs the energy shield, increasing its current capacity.
+    /// </summary>
+    /// <param name="repairAmount">The amount of repair to apply to the shield.</param>
+    /// <param name="location">The location of the repair (optional, default is 0).</param>
     public void Repair(float repairAmount, int location = 0)
     {
         currentCapacity += repairAmount;
@@ -83,11 +118,19 @@ public class EnergyShield : Item
         }
     }
 
+    /// <summary>
+    /// Gets a textual description of the energy shield, including its name, weight, current capacity, max capacity, recharge rate, and recharge delay.
+    /// </summary>
+    /// <returns>A string containing the energy shield's details.</returns>
     public override string GetDescription()
     {
         return $"{Name}\n Weight: {Weight}\n Capacity: {MathF.Round(CurrentCapacity, 2)}/{MathF.Round(MaxCapacity, 2)}\n Recharge Rate: {MathF.Round(RechargeRate, 2)}\n Recharge Delay: {MathF.Round(RechargeDelay, 2)}";
     }
 
+    /// <summary>
+    /// Creates a new instance of the energy shield with the same properties as the current one.
+    /// </summary>
+    /// <returns>A new instance of the energy shield with the same properties as the current one.</returns>
     public override Item Clone()
     {
         return new EnergyShield(Name, Weight, Cost, MaxCapacity, RechargeRate, RechargeDelay);

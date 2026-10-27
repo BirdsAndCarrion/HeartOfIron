@@ -2,12 +2,21 @@ using UnityEngine;
 using HeartOfIron.Enums;
 using System.Collections.Generic;
 
+/// <summary>
+/// Represents a melee attack action performed by a mech, which involves executing a series of melee attacks against a target mech.
+/// This class handles the execution and validation of melee attacks, ensuring that the attacks are within range, can be performed, and applying damage to the target mech.
+/// </summary>
+/// <remarks>
+/// The MeleeAction class extends the AttackAction class and specifically deals with melee combat.
+/// It validates the melee attacks, checks for range and cooldowns, and applies damage to the target mech.
+/// </remarks>
 public class MeleeAction : AttackAction
 {
     public MeleeAction(MechController sourceMech, MechController targetMech, List<MeleeAttack> attacks) : base(ActionType.Melee, sourceMech, targetMech, attacks)
     {
     }
 
+    /// <inheritdoc/>
     public override ActionResult Execute()
     {
         ActionResult canExecuteResult = CanExecute();
@@ -80,6 +89,7 @@ public class MeleeAction : AttackAction
         return ActionResult.Failure;
     }
 
+    /// <inheritdoc/>
     public override ActionResult CanExecute()
     {
         if (SourceMech == null || TargetMech == null || Attacks == null || Attacks.Count == 0)

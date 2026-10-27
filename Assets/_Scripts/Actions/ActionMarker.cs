@@ -2,6 +2,10 @@ using UnityEngine;
 using System;
 using System.Collections.Generic;
 
+/// <summary>
+/// Represents an action marker in the game, which can be selected and is associated with a specific action pair.
+/// This class handles the initialization and selection of action markers, which are linked to specific actions performed by mechs.
+/// </summary>
 public class ActionMarker : MonoBehaviour, ISelectable
 {
     private Guid _id;
