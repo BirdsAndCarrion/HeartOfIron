@@ -122,6 +122,7 @@ public class CombatUIManager : MonoBehaviour
         _bottomBarPanel.SetActive(false);
         _deploymentPanel.SetActive(false);
         _exitCombatPanel.SetActive(false);
+        _optionsPanel.SetActive(false);
         EventRouter.ROnCombatStarted.AddListener(EnterCombat);
         EventRouter.ROnCombatEnded.AddListener(ExitCombat);
         EventRouter.ROnDeploymentStarted.AddListener(ShowDeploymentPanel);
@@ -130,6 +131,12 @@ public class CombatUIManager : MonoBehaviour
         EventRouter.ROnActionMarkerSelected.AddListener(OnSelected);
         EventRouter.ROnHoverableMechControllerInteractionEnter.AddListener(OnHoverableMechControllerInteractionEnter);
         EventRouter.ROnHoverableMechControllerInteractionExit.AddListener(OnHoverableMechControllerInteractionExit);
+    }
+
+    void Start()
+    {
+        _popupPanel.transform.position = new Vector3(_actionSelectionPanel.transform.position.x, _popupPanel.transform.position.y, _popupPanel.transform.position.z);
+        _optionsPanel.transform.position = new Vector3(_actionSelectionPanel.transform.position.x, _optionsPanel.transform.position.y, _optionsPanel.transform.position.z);
     }
 
     void OnDestroy()
@@ -586,15 +593,18 @@ public class CombatUIManager : MonoBehaviour
 
     private async Task ShowOptionsPanel(int showOptionsType)
     {
-        Vector3 originalPosition = _optionsPanel.transform.position;
-        Vector3 targetPosition = originalPosition + new Vector3(_optionsPanel.GetComponent<RectTransform>().rect.width / 2 + _popupPanel.GetComponent<RectTransform>().rect.width / 2 + 0.5f, 0f, 0f);
-        _optionsPanel.SetActive(true);
-        float currentFade = 1f;
-        while (currentFade > 0f)
+        if (_optionsPanel.transform.position.x == _actionSelectionPanel.transform.position.x)
         {
-            currentFade -= Time.deltaTime / fadeDuration;
-            _optionsPanel.transform.position = Vector3.Lerp(originalPosition, targetPosition, 1f - currentFade);
-            await Task.Yield();
+            Vector3 originalPosition = _optionsPanel.transform.position;
+            Vector3 targetPosition = originalPosition - new Vector3(_actionSelectionPanel.GetComponent<RectTransform>().rect.width + 0.5f, 0f, 0f);
+            _optionsPanel.SetActive(true);
+            float currentFade = 1f;
+            while (currentFade > 0f)
+            {
+                currentFade -= Time.deltaTime / fadeDuration;
+                _optionsPanel.transform.position = Vector3.Lerp(originalPosition, targetPosition, 1f - currentFade);
+                await Task.Yield();
+            }
         }
         switch (showOptionsType)
         {
@@ -615,15 +625,18 @@ public class CombatUIManager : MonoBehaviour
 
     private async Task HideOptionsPanel()
     {
-        Vector3 originalPosition = _optionsPanel.transform.position;
-        Vector3 targetPosition = _popupPanel.transform.position;
-        _optionsPanel.SetActive(true);
-        float currentFade = 1f;
-        while (currentFade > 0f)
+        if (_optionsPanel.transform.position.x != _actionSelectionPanel.transform.position.x)
         {
-            currentFade -= Time.deltaTime / fadeDuration;
-            _optionsPanel.transform.position = Vector3.Lerp(originalPosition, targetPosition, 1f - currentFade);
-            await Task.Yield();
+            Vector3 originalPosition = _optionsPanel.transform.position;
+            Vector3 targetPosition = new Vector3(_actionSelectionPanel.transform.position.x, _optionsPanel.transform.position.y, _optionsPanel.transform.position.z);
+            _optionsPanel.SetActive(true);
+            float currentFade = 1f;
+            while (currentFade > 0f)
+            {
+                currentFade -= Time.deltaTime / fadeDuration;
+                _optionsPanel.transform.position = Vector3.Lerp(originalPosition, targetPosition, 1f - currentFade);
+                await Task.Yield();
+            }
         }
         _optionsPanel.SetActive(false);
     }
@@ -818,16 +831,19 @@ public class CombatUIManager : MonoBehaviour
 
     public async Task ShowPopup(ActionType actionType)
     {
-        Vector3 originalPosition = _popupPanel.transform.position;
-        // Move the popup panel in the negative x direction by half its width, plus half of action selection panels width, plus 0.5f for padding
-        Vector3 targetPosition = originalPosition - new Vector3(_popupPanel.GetComponent<RectTransform>().rect.width / 2 + _actionSelectionPanel.GetComponent<RectTransform>().rect.width / 2 + 0.5f, 0f, 0f);
-        _popupPanel.SetActive(true);
-        float currentFade = 1f;
-        while (currentFade > 0f)
+        if (_popupPanel.transform.position.x == _actionSelectionPanel.transform.position.x)
         {
-            currentFade -= Time.deltaTime / fadeDuration;
-            _popupPanel.transform.position = Vector3.Lerp(originalPosition, targetPosition, 1f - currentFade);
-            await Task.Yield();
+            Vector3 originalPosition = _popupPanel.transform.position;
+            // Move the popup panel in the negative x direction by half its width, plus half of action selection panels width, plus 0.5f for padding
+            Vector3 targetPosition = originalPosition - new Vector3(_actionSelectionPanel.GetComponent<RectTransform>().rect.width + 0.5f, 0f, 0f);
+            _popupPanel.SetActive(true);
+            float currentFade = 1f;
+            while (currentFade > 0f)
+            {
+                currentFade -= Time.deltaTime / fadeDuration;
+                _popupPanel.transform.position = Vector3.Lerp(originalPosition, targetPosition, 1f - currentFade);
+                await Task.Yield();
+            }
         }
         _popupPanel.GetComponent<AttackListMount>().actionType = actionType;
         switch (actionType)
@@ -885,12 +901,15 @@ public class CombatUIManager : MonoBehaviour
     async Task HidePopup()
     {
         await HideOptionsPanel();
-        float currentFade = 1f;
-        while (currentFade > 0f)
+        if (_popupPanel.transform.position.x != _actionSelectionPanel.transform.position.x)
         {
-            currentFade -= Time.deltaTime / fadeDuration;
-            _popupPanel.transform.position = Vector3.Lerp(_popupPanel.transform.position, new Vector3(_actionSelectionPanel.transform.position.x, _popupPanel.transform.position.y, _popupPanel.transform.position.z), 1f - currentFade);
-            await Task.Yield();
+            float currentFade = 1f;
+            while (currentFade > 0f)
+            {
+                currentFade -= Time.deltaTime / fadeDuration;
+                _popupPanel.transform.position = Vector3.Lerp(_popupPanel.transform.position, new Vector3(_actionSelectionPanel.transform.position.x, _popupPanel.transform.position.y, _popupPanel.transform.position.z), 1f - currentFade);
+                await Task.Yield();
+            }
         }
         _popupPanel.SetActive(false);
     }
@@ -901,6 +920,7 @@ public class CombatUIManager : MonoBehaviour
     void ShowActionSelectionPanel()
     {
         _actionSelectionPanel.SetActive(true);
+        SetActionButtonColorsUnselected();
     }
 
     /// <summary>
@@ -909,41 +929,49 @@ public class CombatUIManager : MonoBehaviour
     void HideActionSelectionPanel()
     {
         _actionSelectionPanel.SetActive(false);
+        SetActionButtonColorsUnselected();
     }
 
     /// <summary>
     /// Handles the event when the shoot button is clicked.
     /// </summary>
-    public async Task OnShootButtonClicked()
+    public async void OnShootButtonClicked()
     {
         Debug.Log("Shoot button clicked");
+        SetActionButtonColorsUnselected();
+        _shootButton.GetComponent<Image>().color = _popupOptionButtonSelectedColor;
         await ShowPopup(ActionType.Shoot);
     }
 
     /// <summary>
     /// Handles the event when the melee button is clicked.
     /// </summary>
-    public async Task OnMeleeButtonClicked()
+    public async void OnMeleeButtonClicked()
     {
         Debug.Log("Melee button clicked");
+        SetActionButtonColorsUnselected();
+        _meleeButton.GetComponent<Image>().color = _popupOptionButtonSelectedColor;
         await ShowPopup(ActionType.Melee);
     }
 
     /// <summary>
     /// Handles the event when the reload button is clicked.
     /// </summary>
-    public async Task OnReloadButtonClicked()
+    public async void OnReloadButtonClicked()
     {
         Debug.Log("Reload button clicked");
+        SetActionButtonColorsUnselected();
+        _reloadButton.GetComponent<Image>().color = _popupOptionButtonSelectedColor;
         await ShowPopup(ActionType.Reload);
     }
 
     /// <summary>
     /// Handles the event when the move button is clicked.
     /// </summary>
-    public async Task OnMoveButtonClicked()
+    public async void OnMoveButtonClicked()
     {
         Debug.Log("Move button clicked");
+        SetActionButtonColorsUnselected();
         _selectedActionMarker.SetSecondaryAction(new MoveAction(_selectedMechController, _selectedActionMarker.transform.position));
         await ClosePanels();
     }
@@ -951,18 +979,21 @@ public class CombatUIManager : MonoBehaviour
     /// <summary>
     /// Handles the event when the charge button is clicked.
     /// </summary>
-    public async Task OnChargeButtonClicked()
+    public async void OnChargeButtonClicked()
     {
         Debug.Log("Charge button clicked");
+        SetActionButtonColorsUnselected();
+        _chargeButton.GetComponent<Image>().color = _popupOptionButtonSelectedColor;
         await ShowPopup(ActionType.Charge);
     }
 
     /// <summary>
     /// Handles the event when the hunker button is clicked.
     /// </summary>
-    public async Task OnHunkerButtonClicked()
+    public async void OnHunkerButtonClicked()
     {
         Debug.Log("Hunker button clicked");
+        SetActionButtonColorsUnselected();
         _selectedActionMarker.SetSecondaryAction(new HunkerAction(_selectedMechController));
         await ClosePanels();
     }
@@ -970,9 +1001,10 @@ public class CombatUIManager : MonoBehaviour
     /// <summary>
     /// Handles the event when the overwatch button is clicked.
     /// </summary>
-    public async Task OnOverwatchButtonClicked()
+    public async void OnOverwatchButtonClicked()
     {
         Debug.Log("Overwatch button clicked");
+        SetActionButtonColorsUnselected();
         _selectedActionMarker.SetSecondaryAction(new OverwatchAction(_selectedMechController));
         await ClosePanels();
     } 
@@ -980,9 +1012,10 @@ public class CombatUIManager : MonoBehaviour
     /// <summary>
     /// Handles the event when the remove button is clicked.
     /// </summary>
-    public async Task OnRemoveButtonClicked()
+    public async void OnRemoveButtonClicked()
     {
         Debug.Log("Remove button clicked");
+        SetActionButtonColorsUnselected();
         if (_selectedActionMarker != null)
         {
             _selectedMechController.RemoveActionMarker(_selectedActionMarker);
@@ -994,9 +1027,10 @@ public class CombatUIManager : MonoBehaviour
     /// <summary>
     /// Handles the event when the cancel button is clicked.
     /// </summary>
-    public async Task OnCancelButtonClicked()
+    public async void OnCancelButtonClicked()
     {
         Debug.Log("Cancel button clicked");
+        SetActionButtonColorsUnselected();
         await ClosePanels();
     }
 
@@ -1027,9 +1061,9 @@ public class CombatUIManager : MonoBehaviour
     /// </summary>
     private async Task ClosePanels()
     {
+        await HidePopup();
         HideMechInfoPanel();
         HideActionSelectionPanel();
-        await HidePopup();
     }
 
     /// <summary>
@@ -1051,6 +1085,15 @@ public class CombatUIManager : MonoBehaviour
         Debug.Log("Exit Combat button clicked");
         _exitCombatPanel.SetActive(false);
         SceneLoader.Instance.LoadScene(SceneName.Garage);
+    }
+
+    private void SetActionButtonColorsUnselected()
+    {
+        foreach (Transform button in _actionSelectionPanel.transform)
+        {
+            if (button == null) continue;
+            button.GetComponent<Image>().color = _popupOptionButtonColor;
+        }
     }
 
 }

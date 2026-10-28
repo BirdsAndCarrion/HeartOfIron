@@ -145,7 +145,7 @@ public class MechVision : MonoBehaviour
 
     private void DrawVisionMesh()
     {
-        Debug.Log("Drawing vision mesh.");
+        // Debug.Log("Drawing vision mesh.");
         int stepCount = Mathf.RoundToInt(visionAngle * meshResolution);
         float stepAngleSize = visionAngle / stepCount;
         List<Vector3> viewPoints = new List<Vector3>();
