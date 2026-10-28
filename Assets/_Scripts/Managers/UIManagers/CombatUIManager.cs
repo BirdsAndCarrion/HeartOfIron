@@ -14,7 +14,7 @@ using System.Text;
 /// </summary>
 public class CombatUIManager : MonoBehaviour
 {
-
+    private readonly float TOOLTIP_OFFSET_X = 0.5f;
     private readonly int RANGED_WEAPON_INDEX = 0;
     private readonly int MELEE_WEAPON_INDEX = 1;
     private readonly int RANGED_TARGET_INDEX = 2;
@@ -22,6 +22,8 @@ public class CombatUIManager : MonoBehaviour
 
     public static CombatUIManager Instance { get; private set; }
 
+    [SerializeField] private RectTransform _canvasRectTransform;
+    [SerializeField] private GameObject _hoverableItemTooltip;
     [Header("Mech Info Panel Elements")]
     [SerializeField] private GameObject _mechInfoPanel;
     [SerializeField] private TextMeshProUGUI _mechNameText;
@@ -29,9 +31,11 @@ public class CombatUIManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI _mechTypeLevelText;
     [Header("Weapon Info Panel Elements")]
     [SerializeField] private GameObject _weaponPanel;
+    [SerializeField] private HoverableItemTooltip _weaponTooltip;
     [SerializeField] private TextMeshProUGUI _weaponNameText;
     [SerializeField] private TextMeshProUGUI _weaponAmmoText;
     [SerializeField] private GameObject _weapon2Panel;
+    [SerializeField] private HoverableItemTooltip _weapon2Tooltip;
     [SerializeField] private TextMeshProUGUI _weapon2NameText;
     [SerializeField] private TextMeshProUGUI _weapon2AmmoText;
     [Header("Mech Health Panel Elements")]
@@ -44,14 +48,21 @@ public class CombatUIManager : MonoBehaviour
     [SerializeField] private GameObject _rightLegHealthBar;
     [Header("Mech Armor Panel Elements")]
     [SerializeField] private GameObject _mechArmorPanel;
+    [SerializeField] private HoverableItemTooltip _headArmorTooltip;
     [SerializeField] private GameObject _headArmorBar;
+    [SerializeField] private HoverableItemTooltip _torsoArmorTooltip;
     [SerializeField] private GameObject _torsoArmorBar;
+    [SerializeField] private HoverableItemTooltip _leftArmArmorTooltip;
     [SerializeField] private GameObject _leftArmArmorBar;
+    [SerializeField] private HoverableItemTooltip _rightArmArmorTooltip;
     [SerializeField] private GameObject _rightArmArmorBar;
+    [SerializeField] private HoverableItemTooltip _leftLegArmorTooltip;
     [SerializeField] private GameObject _leftLegArmorBar;
+    [SerializeField] private HoverableItemTooltip _rightLegArmorTooltip;
     [SerializeField] private GameObject _rightLegArmorBar;
     [Header("Mech Energy Shield Panel Elements")]
     [SerializeField] private GameObject _mechEnergyShieldPanel;
+    [SerializeField] private HoverableItemTooltip _energyShieldTooltip;
     [SerializeField] private GameObject _energyShieldBar;
 
     [Header("Pop-up Elements")]
@@ -79,6 +90,12 @@ public class CombatUIManager : MonoBehaviour
     [SerializeField] private GameObject _chargeButton;
     [SerializeField] private GameObject _hunkerButton;
     [SerializeField] private GameObject _overwatchButton;
+
+    [Header("Player Mech Action Displays")]
+    [SerializeField] private GameObject _playerMechActionDisplayPrefab;
+    [SerializeField] private Transform _playerMechActionDisplayParent;
+    [SerializeField] private GameObject _playerMechActionPrefab;
+    private Dictionary<MechController, GameObject> _playerMechActionDisplays = new Dictionary<MechController, GameObject>();
 
     [Header("Bottom Bar Elements")]
     [SerializeField] private GameObject _bottomBarPanel;
@@ -131,6 +148,8 @@ public class CombatUIManager : MonoBehaviour
         EventRouter.ROnActionMarkerSelected.AddListener(OnSelected);
         EventRouter.ROnHoverableMechControllerInteractionEnter.AddListener(OnHoverableMechControllerInteractionEnter);
         EventRouter.ROnHoverableMechControllerInteractionExit.AddListener(OnHoverableMechControllerInteractionExit);
+        EventRouter.ROnHoverableItemTooltipEnter.AddListener(OnHoverableItemTooltipEnter);
+        EventRouter.ROnHoverableItemTooltipExit.AddListener(OnHoverableItemTooltipExit);
     }
 
     void Start()
@@ -149,6 +168,8 @@ public class CombatUIManager : MonoBehaviour
         EventRouter.ROnActionMarkerSelected.RemoveListener(OnSelected);
         EventRouter.ROnHoverableMechControllerInteractionEnter.RemoveListener(OnHoverableMechControllerInteractionEnter);
         EventRouter.ROnHoverableMechControllerInteractionExit.RemoveListener(OnHoverableMechControllerInteractionExit);
+        EventRouter.ROnHoverableItemTooltipEnter.RemoveListener(OnHoverableItemTooltipEnter);
+        EventRouter.ROnHoverableItemTooltipExit.RemoveListener(OnHoverableItemTooltipExit);
     }
     
     void Update()
@@ -233,14 +254,14 @@ public class CombatUIManager : MonoBehaviour
     /// Updates the selected mech controller and action marker, and displays the relevant UI panels.
     /// </summary>
     /// <param name="mechController">The mech controller that was selected.</param>
-    public void OnSelected(MechController mechController)
+    public async void OnSelected(MechController mechController)
     {
         Debug.Log($"MechController selected: {mechController.Mech.Name}");
         _selectedMechController = mechController;
         _selectedActionMarker = ActionMarkerAssembler.Instance.AssembleActionMarker(mechController.transform.position, mechController, false);
         _selectedMechController.InsertActionMarkerAt(_selectedActionMarker, 0);
         ShowMechInfoPanel(mechController);
-        ShowActionSelectionPanel();
+        await ShowActionSelectionPanel();
     }
 
     /// <summary>
@@ -248,13 +269,13 @@ public class CombatUIManager : MonoBehaviour
     /// Updates the selected mech controller and action marker, and displays the relevant UI panels.
     /// </summary>
     /// <param name="actionMarker">The action marker that was selected.</param>
-    public void OnSelected(ActionMarker actionMarker)
+    public async void OnSelected(ActionMarker actionMarker)
     {
         Debug.Log($"ActionMarker selected: {actionMarker.Id}, Source Mech: {actionMarker.ActionPair.MovementAction.SourceMech.Mech.Name}");
         _selectedMechController = actionMarker.ActionPair.MovementAction.SourceMech;
         _selectedActionMarker = actionMarker;
         ShowMechInfoPanel(actionMarker.ActionPair.MovementAction.SourceMech);
-        ShowActionSelectionPanel();
+        await ShowActionSelectionPanel();
     }
 
     /// <summary>
@@ -298,30 +319,35 @@ public class CombatUIManager : MonoBehaviour
     {
         _mechInfoPanel.SetActive(true);
         _mechNameText.text = mechController.Mech.Name;
-        //_pilotNameText.text = mechController.Pilot.Name;
+        if (mechController.Mech.Pilot != null)
+            _pilotNameText.text = mechController.Mech.Pilot.Name;
         _mechTypeLevelText.text = $"{mechController.Mech.Type} - Level {mechController.Mech.Level}";
         if (mechController.Mech.Inventory.Weapons[(int)Hand.Right] != null)
         {
             _weaponNameText.text = mechController.Mech.Inventory.Weapons[(int)Hand.Right].Name;
             _weaponAmmoText.text = $"Ammo: {mechController.Mech.Inventory.Weapons[(int)Hand.Right].CurrentAmmo}/{mechController.Mech.Inventory.Weapons[(int)Hand.Right].MaxAmmo}";
+            _weaponTooltip.item = mechController.Mech.Inventory.Weapons[(int)Hand.Right];
             _weaponPanel.SetActive(true);
         }
         else
         {
             _weaponNameText.text = "No Weapon";
             _weaponAmmoText.text = "Ammo: N/A";
+            _weaponTooltip.item = null;
             _weaponPanel.SetActive(false);
         }
         if (mechController.Mech.Inventory.Weapons[(int)Hand.Left] != null)
         {
             _weapon2NameText.text = mechController.Mech.Inventory.Weapons[(int)Hand.Left].Name;
             _weapon2AmmoText.text = $"Ammo: {mechController.Mech.Inventory.Weapons[(int)Hand.Left].CurrentAmmo}/{mechController.Mech.Inventory.Weapons[(int)Hand.Left].MaxAmmo}";
+            _weapon2Tooltip.item = mechController.Mech.Inventory.Weapons[(int)Hand.Left];
             _weapon2Panel.SetActive(true);
         }
         else
         {
             _weapon2NameText.text = "No Weapon";
             _weapon2AmmoText.text = "Ammo: N/A";
+            _weapon2Tooltip.item = null;
             _weapon2Panel.SetActive(false);
         }
 
@@ -376,6 +402,7 @@ public class CombatUIManager : MonoBehaviour
         if (armors[(int)ArmorType.Head] != null)
         {
             UpdateResourceBar(armors[(int)ArmorType.Head].GetDurability(), armors[(int)ArmorType.Head].MaxDurability, _headArmorBar);
+            _headArmorTooltip.item = armors[(int)ArmorType.Head];
         }
         else
         {
@@ -384,6 +411,7 @@ public class CombatUIManager : MonoBehaviour
         if (armors[(int)ArmorType.Torso] != null)
         {
             UpdateResourceBar(armors[(int)ArmorType.Torso].GetDurability(), armors[(int)ArmorType.Torso].MaxDurability, _torsoArmorBar);
+            _torsoArmorTooltip.item = armors[(int)ArmorType.Torso];
         }
         else
         {
@@ -392,7 +420,9 @@ public class CombatUIManager : MonoBehaviour
         if (armors[(int)ArmorType.Arms] != null)
         {
             UpdateResourceBar(armors[(int)ArmorType.Arms].GetDurability(1), armors[(int)ArmorType.Arms].MaxDurability, _rightArmArmorBar);
+            _rightArmArmorTooltip.item = armors[(int)ArmorType.Arms];
             UpdateResourceBar(armors[(int)ArmorType.Arms].GetDurability(0), armors[(int)ArmorType.Arms].MaxDurability, _leftArmArmorBar);
+            _leftArmArmorTooltip.item = armors[(int)ArmorType.Arms];
         }
         else
         {
@@ -402,7 +432,9 @@ public class CombatUIManager : MonoBehaviour
         if (armors[(int)ArmorType.Legs] != null)
         {
             UpdateResourceBar(armors[(int)ArmorType.Legs].GetDurability(0), armors[(int)ArmorType.Legs].MaxDurability, _leftLegArmorBar);
+            _leftLegArmorTooltip.item = armors[(int)ArmorType.Legs];
             UpdateResourceBar(armors[(int)ArmorType.Legs].GetDurability(1), armors[(int)ArmorType.Legs].MaxDurability, _rightLegArmorBar);
+            _rightLegArmorTooltip.item = armors[(int)ArmorType.Legs];
         }
         else
         {
@@ -421,6 +453,7 @@ public class CombatUIManager : MonoBehaviour
         if (energyShield != null)
         {
             UpdateResourceBar(energyShield.CurrentCapacity, energyShield.MaxCapacity, _energyShieldBar);
+            _energyShieldTooltip.item = energyShield;
         }
         else
         {
@@ -798,6 +831,121 @@ public class CombatUIManager : MonoBehaviour
         OnTargetExited(mechController);
     }
 
+    /// <summary>
+    /// Handles the event when the mouse enters a hoverable item and displays the appropriate tooltip.
+    /// </summary>
+    /// <param name="go">The GameObject representing the UI element being hovered over.</param>
+    /// <param name="item">The item associated with the UI element.</param>
+    private void OnHoverableItemTooltipEnter(GameObject go, Item item)
+    {   
+        if (item == null)
+        {
+            return;
+        } else if (item is Weapon weapon)
+        {
+            // Display weapon tooltip for item and for all weapons in mechs inventory
+            // Debug.Log($"Displaying tooltip for weapon: {weapon?.Name}");
+            GameObject weaponTooltip = CreateWeaponTooltip(weapon);
+            weaponTooltip.transform.SetParent(go.transform, false);
+            weaponTooltip.transform.localPosition = GetInitialOffsetX(go) / _canvasRectTransform.localScale.x;
+            
+        }
+        else if (item is Armor armor)
+        {
+            // Display armor tooltip for item and equivalent armor in mechs inventory
+            GameObject armorTooltip = CreateArmorTooltip(armor);
+            armorTooltip.transform.SetParent(go.transform, false);
+            armorTooltip.transform.localPosition = GetInitialOffsetX(go) / _canvasRectTransform.localScale.x;
+            
+        }
+        else if (item is EnergyShield shield)
+        {
+            // Display energy shield tooltip for item and equivalent energy shield in mechs inventory
+            GameObject shieldTooltip = CreateEnergyShieldTooltip(shield);
+            shieldTooltip.transform.SetParent(go.transform, false);
+            shieldTooltip.transform.localPosition = GetInitialOffsetX(go) / _canvasRectTransform.localScale.x;
+            
+        }
+    }
+
+    /// <summary>
+    /// Calculates the initial offset for positioning the tooltip relative to the UI element.
+    /// </summary>
+    /// <param name="go">The GameObject representing the UI element.</param>
+    /// <returns>The initial offset as a Vector3.</returns>
+    private Vector3 GetInitialOffsetX(GameObject go)
+    {
+        return new Vector3(go.GetComponent<RectTransform>().rect.width / 2 + TOOLTIP_OFFSET_X, go.GetComponent<RectTransform>().rect.height / 2, 0);
+    }
+
+    /// <summary>
+    /// Creates a tooltip GameObject for the specified weapon.
+    /// </summary>
+    /// <param name="weapon">The weapon for which to create the tooltip.</param>
+    /// <returns>The created weapon tooltip GameObject.</returns>
+    private GameObject CreateWeaponTooltip(Weapon weapon)
+    {
+        // Instantiate and configure the weapon tooltip GameObject
+        GameObject tooltip = Instantiate(_hoverableItemTooltip);
+        tooltip.name = "WeaponTooltip";
+        // Add components and set up the tooltip as needed
+        TooltipScreenSpaceUI tooltipUI = tooltip.GetComponent<TooltipScreenSpaceUI>();
+        if (tooltipUI == null)
+            tooltipUI = tooltip.AddComponent<TooltipScreenSpaceUI>();
+        tooltipUI.DisplayTooltip(weapon.GetDescription());
+        return tooltip;
+    }
+
+    /// <summary>
+    /// Creates a tooltip GameObject for the specified armor.
+    /// </summary>
+    /// <param name="armor">The armor for which to create the tooltip.</param>
+    /// <returns>The created armor tooltip GameObject.</returns>
+    private GameObject CreateArmorTooltip(Armor armor)
+    {
+        // Instantiate and configure the armor tooltip GameObject
+        GameObject tooltip = Instantiate(_hoverableItemTooltip);
+        tooltip.name = "ArmorTooltip";
+        // Add components and set up the tooltip as needed
+        TooltipScreenSpaceUI tooltipUI = tooltip.GetComponent<TooltipScreenSpaceUI>();
+        if (tooltipUI == null)
+            tooltipUI = tooltip.AddComponent<TooltipScreenSpaceUI>();
+        tooltipUI.DisplayTooltip(armor.GetDescription());
+        return tooltip;
+    }
+
+    /// <summary>
+    /// Creates a tooltip GameObject for the specified energy shield.
+    /// </summary>
+    /// <param name="shield">The energy shield for which to create the tooltip.</param>
+    /// <returns>The created energy shield tooltip GameObject.</returns>
+    private GameObject CreateEnergyShieldTooltip(EnergyShield shield)
+    {
+        // Instantiate and configure the energy shield tooltip GameObject
+        GameObject tooltip = Instantiate(_hoverableItemTooltip);
+        tooltip.name = "EnergyShieldTooltip";
+        // Add components and set up the tooltip as needed
+        TooltipScreenSpaceUI tooltipUI = tooltip.GetComponent<TooltipScreenSpaceUI>();
+        if (tooltipUI == null)
+            tooltipUI = tooltip.AddComponent<TooltipScreenSpaceUI>();
+        tooltipUI.DisplayTooltip(shield.GetDescription());
+        return tooltip;
+    }
+
+    /// <summary>
+    /// Handles the event when the mouse exits a hoverable item and destroys the associated tooltip.
+    /// </summary>
+    /// <param name="go">The GameObject representing the UI element that the mouse exited.</param>
+    private void OnHoverableItemTooltipExit(GameObject go)
+    {
+        // Handle tooltip exit event
+        foreach (Transform child in go.transform)
+        {
+            if (child.gameObject.name.EndsWith("Tooltip"))
+                GameObject.Destroy(child.gameObject);
+        }
+    }
+
     private void OnTargetSelected(GameObject option, MechController target)
     {
         AttackListMount attackListMount = _popupPanel.GetComponent<AttackListMount>();
@@ -849,6 +997,7 @@ public class CombatUIManager : MonoBehaviour
         switch (actionType)
         {
             case ActionType.Shoot:
+
                 UpdateCurrentSelectionsPanel("None", "None");
                 ActivateTargetSelectionButton(true);
                 EnableTargetSelectionButton(false);
@@ -917,10 +1066,25 @@ public class CombatUIManager : MonoBehaviour
     /// <summary>
     /// Shows the action selection panel.
     /// </summary>
-    void ShowActionSelectionPanel()
+    async Task ShowActionSelectionPanel()
     {
         _actionSelectionPanel.SetActive(true);
         SetActionButtonColorsUnselected();
+        if (_selectedActionMarker != null)
+        {
+            if (_selectedActionMarker.ActionPair.SecondaryAction != null)
+            {
+                ActionType actionType = _selectedActionMarker.ActionPair.SecondaryAction.ActionType;
+                SetColorOfActionButton(actionType);
+                if (actionType == ActionType.Shoot || actionType == ActionType.Melee || actionType == ActionType.Reload || actionType == ActionType.Charge)
+                {
+                    await ShowPopup(actionType);
+                }
+            } else 
+            {
+                SetColorOfActionButton(ActionType.Move);
+            }
+        }
     }
 
     /// <summary>
@@ -939,7 +1103,7 @@ public class CombatUIManager : MonoBehaviour
     {
         Debug.Log("Shoot button clicked");
         SetActionButtonColorsUnselected();
-        _shootButton.GetComponent<Image>().color = _popupOptionButtonSelectedColor;
+        SetColorOfActionButton(ActionType.Shoot);
         await ShowPopup(ActionType.Shoot);
     }
 
@@ -950,7 +1114,7 @@ public class CombatUIManager : MonoBehaviour
     {
         Debug.Log("Melee button clicked");
         SetActionButtonColorsUnselected();
-        _meleeButton.GetComponent<Image>().color = _popupOptionButtonSelectedColor;
+        SetColorOfActionButton(ActionType.Melee);
         await ShowPopup(ActionType.Melee);
     }
 
@@ -961,7 +1125,7 @@ public class CombatUIManager : MonoBehaviour
     {
         Debug.Log("Reload button clicked");
         SetActionButtonColorsUnselected();
-        _reloadButton.GetComponent<Image>().color = _popupOptionButtonSelectedColor;
+        SetColorOfActionButton(ActionType.Reload);
         await ShowPopup(ActionType.Reload);
     }
 
@@ -983,7 +1147,7 @@ public class CombatUIManager : MonoBehaviour
     {
         Debug.Log("Charge button clicked");
         SetActionButtonColorsUnselected();
-        _chargeButton.GetComponent<Image>().color = _popupOptionButtonSelectedColor;
+        SetColorOfActionButton(ActionType.Charge);
         await ShowPopup(ActionType.Charge);
     }
 
@@ -1032,6 +1196,34 @@ public class CombatUIManager : MonoBehaviour
         Debug.Log("Cancel button clicked");
         SetActionButtonColorsUnselected();
         await ClosePanels();
+    }
+
+    private void SetColorOfActionButton(ActionType actionType)
+    {
+        switch (actionType)
+        {
+            case ActionType.Shoot:
+                _shootButton.GetComponent<Image>().color = _popupOptionButtonSelectedColor;
+                break;
+            case ActionType.Melee:
+                _meleeButton.GetComponent<Image>().color = _popupOptionButtonSelectedColor;
+                break;
+            case ActionType.Reload:
+                _reloadButton.GetComponent<Image>().color = _popupOptionButtonSelectedColor;
+                break;
+            case ActionType.Move:
+                _moveButton.GetComponent<Image>().color = _popupOptionButtonSelectedColor;
+                break;
+            case ActionType.Charge:
+                _chargeButton.GetComponent<Image>().color = _popupOptionButtonSelectedColor;
+                break;
+            case ActionType.Hunker:
+                _hunkerButton.GetComponent<Image>().color = _popupOptionButtonSelectedColor;
+                break;
+            case ActionType.Overwatch:
+                _overwatchButton.GetComponent<Image>().color = _popupOptionButtonSelectedColor;
+                break;
+        }
     }
 
     /// <summary>
@@ -1096,4 +1288,66 @@ public class CombatUIManager : MonoBehaviour
         }
     }
 
+    private void CreatePlayerMechActionDisplays()
+    {
+        if (_playerMechActionDisplayPrefab == null || _playerMechActionDisplayParent == null)
+            return;
+        // Clear existing action displays
+        foreach (Transform child in _playerMechActionDisplayParent)
+        {
+            Destroy(child.gameObject);
+        }
+        List<MechController> playerMechs = CombatManager.Instance.PlayerMechs;
+        for (int i = 0; i < playerMechs.Count; i++)
+        {
+            GameObject actionDisplay = GameObject.Instantiate(_playerMechActionDisplayPrefab, _playerMechActionDisplayParent);
+            float yOffset = i * actionDisplay.GetComponent<RectTransform>().rect.width;
+            actionDisplay.GetComponent<RectTransform>().anchoredPosition = new Vector2(0, -yOffset);
+            actionDisplay.GetComponent<RectTransform>().localScale = Vector3.one;
+            actionDisplay.name = $"PlayerMechActionDisplay_{playerMechs[i].Mech.Name}";
+            actionDisplay.GetComponentInChildren<Text>().text = playerMechs[i].Mech.Name;
+            _playerMechActionDisplays[playerMechs[i]] = actionDisplay;
+        }
+    }
+
+    public void AddActionToDisplay(ActionMarker actionMarker)
+    {
+        MechController mechController = actionMarker.SourceMech;
+        if (_playerMechActionDisplays.ContainsKey(mechController))
+        {
+            GameObject actionDisplay = _playerMechActionDisplays[mechController];
+            GameObject action = GameObject.Instantiate(_playerMechActionPrefab, actionDisplay.transform);
+            StringBuilder sb = new StringBuilder();
+            sb.Append(actionMarker.ActionPair.MovementAction.Destination);
+            sb.Append(" ");
+            if (actionMarker.ActionPair.SecondaryAction != null && actionMarker.ActionPair.MovementAction.ActionType != ActionType.Charge)
+                sb.Append(actionMarker.ActionPair.SecondaryAction.ActionType);
+            else if (actionMarker.ActionPair.MovementAction.ActionType == ActionType.Charge)
+                sb.Append("Charge");
+            else
+                sb.Append("Move");
+            action.GetComponentInChildren<Text>().text = sb.ToString();
+            if (actionMarker.ActionPair.MovementAction.ActionType == ActionType.Charge)
+            {
+                action.GetComponent<DragDrop>().interactable = false;
+                action.GetComponent<Image>().color = _popupOptionButtonSelectedColor;
+            } else
+            {
+                action.GetComponent<DragDrop>().interactable = true;
+                action.GetComponent<Image>().color = _popupOptionButtonColor;
+            }
+            action.GetComponent<DragDrop>().SetActionMarker(actionMarker);
+            action.GetComponentInChildren<Button>().onClick.RemoveAllListeners();
+            action.GetComponentInChildren<Button>().onClick.AddListener(() => RemoveActionFromDisplay(action, actionMarker));
+        }
+    }
+
+    public void RemoveActionFromDisplay(GameObject action, ActionMarker actionMarker)
+    {
+        MechController mechController = actionMarker.SourceMech;
+        mechController.RemoveActionMarker(actionMarker);
+        Destroy(action);
+    }
+
+    // TODO: Implement functionality to display the action markers information in the UI when an action is selected in the action display
 }

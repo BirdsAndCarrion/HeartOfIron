@@ -583,7 +583,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 200, y: 50}
+  m_SizeDelta: {x: 0, y: 25}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &85064544
 CanvasRenderer:
@@ -613,7 +613,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: New Text
+  m_text: Ammo
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: b1c16ff05b55b8443890784c2463ad11, type: 2}
   m_sharedMaterial: {fileID: 941085279586083903, guid: b1c16ff05b55b8443890784c2463ad11, type: 2}
@@ -1049,7 +1049,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 7588681977448772475, guid: 24f2252186fc5d9468bf9b785ee65f58, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2027202832}
   m_SourcePrefab: {fileID: 100100000, guid: 24f2252186fc5d9468bf9b785ee65f58, type: 3}
 --- !u!1 &296159566
 GameObject:
@@ -1669,7 +1672,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 7588681977448772475, guid: 24f2252186fc5d9468bf9b785ee65f58, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1376248996}
   m_SourcePrefab: {fileID: 100100000, guid: 24f2252186fc5d9468bf9b785ee65f58, type: 3}
 --- !u!1 &410087039
 GameObject:
@@ -3133,6 +3139,7 @@ GameObject:
   - component: {fileID: 760215178}
   - component: {fileID: 760215177}
   - component: {fileID: 760215176}
+  - component: {fileID: 760215179}
   m_Layer: 5
   m_Name: Panel
   m_TagString: Untagged
@@ -3160,7 +3167,7 @@ RectTransform:
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
-  m_Pivot: {x: 0.5, y: 0.5}
+  m_Pivot: {x: 0, y: 1}
 --- !u!114 &760215176
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3179,10 +3186,10 @@ MonoBehaviour:
     m_Top: 0
     m_Bottom: 0
   m_ChildAlignment: 0
-  m_Spacing: 0
+  m_Spacing: 5
   m_ChildForceExpandWidth: 1
-  m_ChildForceExpandHeight: 1
-  m_ChildControlWidth: 0
+  m_ChildForceExpandHeight: 0
+  m_ChildControlWidth: 1
   m_ChildControlHeight: 0
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
@@ -3225,6 +3232,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 760215174}
   m_CullTransparentMesh: 1
+--- !u!114 &760215179
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 760215174}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: acad9154537d45745bfadb36f9f7227d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TestModule::HoverableItemTooltip
 --- !u!1001 &795141675
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3324,7 +3343,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 7588681977448772475, guid: 24f2252186fc5d9468bf9b785ee65f58, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 988976478}
   m_SourcePrefab: {fileID: 100100000, guid: 24f2252186fc5d9468bf9b785ee65f58, type: 3}
 --- !u!1 &798289836
 GameObject:
@@ -3638,7 +3660,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 7588681977448772475, guid: 24f2252186fc5d9468bf9b785ee65f58, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1014513388}
   m_SourcePrefab: {fileID: 100100000, guid: 24f2252186fc5d9468bf9b785ee65f58, type: 3}
 --- !u!1 &832575517
 GameObject:
@@ -3882,6 +3907,18 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 7588681977448772475, guid: 24f2252186fc5d9468bf9b785ee65f58, type: 3}
   m_PrefabInstance: {fileID: 1164858189}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &881498130
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 881498129}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: acad9154537d45745bfadb36f9f7227d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TestModule::HoverableItemTooltip
 --- !u!1 &901827770
 GameObject:
   m_ObjectHideFlags: 0
@@ -4493,11 +4530,35 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 7588681977448772475, guid: 24f2252186fc5d9468bf9b785ee65f58, type: 3}
   m_PrefabInstance: {fileID: 795141675}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &988976478
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 988976477}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: acad9154537d45745bfadb36f9f7227d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TestModule::HoverableItemTooltip
 --- !u!1 &1014513387 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7588681977448772475, guid: 24f2252186fc5d9468bf9b785ee65f58, type: 3}
   m_PrefabInstance: {fileID: 831755034}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1014513388
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1014513387}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: acad9154537d45745bfadb36f9f7227d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TestModule::HoverableItemTooltip
 --- !u!1 &1031407233
 GameObject:
   m_ObjectHideFlags: 0
@@ -4624,8 +4685,8 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 200, y: 50}
-  m_Pivot: {x: 0.5, y: 0.5}
+  m_SizeDelta: {x: 0, y: 25}
+  m_Pivot: {x: 0, y: 1}
 --- !u!222 &1085460409
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -4654,7 +4715,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: New Text
+  m_text: Weapon Name
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: b1c16ff05b55b8443890784c2463ad11, type: 2}
   m_sharedMaterial: {fileID: 941085279586083903, guid: b1c16ff05b55b8443890784c2463ad11, type: 2}
@@ -4873,6 +4934,18 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 2120906196182245501, guid: 24f2252186fc5d9468bf9b785ee65f58, type: 3}
   m_PrefabInstance: {fileID: 2085005595}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1101361618
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 39676161}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: acad9154537d45745bfadb36f9f7227d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TestModule::HoverableItemTooltip
 --- !u!1 &1105096328
 GameObject:
   m_ObjectHideFlags: 0
@@ -5382,7 +5455,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 7588681977448772475, guid: 24f2252186fc5d9468bf9b785ee65f58, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 881498130}
   m_SourcePrefab: {fileID: 100100000, guid: 24f2252186fc5d9468bf9b785ee65f58, type: 3}
 --- !u!1 &1167762877
 GameObject:
@@ -5424,7 +5500,7 @@ RectTransform:
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
-  m_Pivot: {x: 0.5, y: 0.5}
+  m_Pivot: {x: 0, y: 1}
 --- !u!114 &1167762879
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5479,7 +5555,7 @@ MonoBehaviour:
   m_MinWidth: -1
   m_MinHeight: -1
   m_PreferredWidth: 500
-  m_PreferredHeight: 450
+  m_PreferredHeight: 125
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
@@ -6097,6 +6173,18 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 2120906196182245501, guid: 24f2252186fc5d9468bf9b785ee65f58, type: 3}
   m_PrefabInstance: {fileID: 375180862}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1376248996
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 41243882}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: acad9154537d45745bfadb36f9f7227d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TestModule::HoverableItemTooltip
 --- !u!1 &1394871303
 GameObject:
   m_ObjectHideFlags: 0
@@ -6234,6 +6322,7 @@ GameObject:
   - component: {fileID: 1423345807}
   - component: {fileID: 1423345806}
   - component: {fileID: 1423345805}
+  - component: {fileID: 1423345808}
   m_Layer: 5
   m_Name: Panel
   m_TagString: Untagged
@@ -6280,10 +6369,10 @@ MonoBehaviour:
     m_Top: 0
     m_Bottom: 0
   m_ChildAlignment: 0
-  m_Spacing: 0
+  m_Spacing: 5
   m_ChildForceExpandWidth: 1
-  m_ChildForceExpandHeight: 1
-  m_ChildControlWidth: 0
+  m_ChildForceExpandHeight: 0
+  m_ChildControlWidth: 1
   m_ChildControlHeight: 0
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
@@ -6326,6 +6415,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1423345803}
   m_CullTransparentMesh: 1
+--- !u!114 &1423345808
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1423345803}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: acad9154537d45745bfadb36f9f7227d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TestModule::HoverableItemTooltip
 --- !u!1 &1438625743
 GameObject:
   m_ObjectHideFlags: 0
@@ -7747,11 +7848,11 @@ RectTransform:
   - {fileID: 924367983}
   m_Father: {fileID: 1636487039}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 250, y: 0}
-  m_SizeDelta: {x: 500, y: 0}
-  m_Pivot: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0.5}
+  m_AnchorMax: {x: 0, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 500, y: 1080}
+  m_Pivot: {x: 0, y: 0.5}
 --- !u!114 &1633086175
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8365,6 +8466,18 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 2120906196182245501, guid: 24f2252186fc5d9468bf9b785ee65f58, type: 3}
   m_PrefabInstance: {fileID: 1958746427}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1840909783
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 92027759}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: acad9154537d45745bfadb36f9f7227d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TestModule::HoverableItemTooltip
 --- !u!1 &1849691148
 GameObject:
   m_ObjectHideFlags: 0
@@ -8892,7 +9005,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 200, y: 50}
+  m_SizeDelta: {x: 0, y: 25}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1951143831
 CanvasRenderer:
@@ -8922,7 +9035,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: New Text
+  m_text: Ammo
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: b1c16ff05b55b8443890784c2463ad11, type: 2}
   m_sharedMaterial: {fileID: 941085279586083903, guid: b1c16ff05b55b8443890784c2463ad11, type: 2}
@@ -9194,7 +9307,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 7588681977448772475, guid: 24f2252186fc5d9468bf9b785ee65f58, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1840909783}
   m_SourcePrefab: {fileID: 100100000, guid: 24f2252186fc5d9468bf9b785ee65f58, type: 3}
 --- !u!1 &1988119025
 GameObject:
@@ -9225,14 +9341,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29d4fa31ba4540141b6b1b9c15ada8dd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CombatUIManager
+  _canvasRectTransform: {fileID: 1636487039}
+  _hoverableItemTooltip: {fileID: 1898828425996623091, guid: ff97506df8e2def46b28aa2b4de7e000, type: 3}
   _mechInfoPanel: {fileID: 1633086173}
   _mechNameText: {fileID: 1350691437}
   _pilotNameText: {fileID: 539941459}
   _mechTypeLevelText: {fileID: 1806752399}
   _weaponPanel: {fileID: 760215174}
+  _weaponTooltip: {fileID: 760215179}
   _weaponNameText: {fileID: 1085460410}
   _weaponAmmoText: {fileID: 85064545}
   _weapon2Panel: {fileID: 1423345803}
+  _weapon2Tooltip: {fileID: 1423345808}
   _weapon2NameText: {fileID: 2030050326}
   _weapon2AmmoText: {fileID: 1951143832}
   _mechHealthPanel: {fileID: 937538587}
@@ -9243,13 +9363,20 @@ MonoBehaviour:
   _leftLegHealthBar: {fileID: 1893400513}
   _rightLegHealthBar: {fileID: 657930962}
   _mechArmorPanel: {fileID: 1514835314}
+  _headArmorTooltip: {fileID: 1376248996}
   _headArmorBar: {fileID: 41243882}
+  _torsoArmorTooltip: {fileID: 1014513388}
   _torsoArmorBar: {fileID: 1014513387}
+  _leftArmArmorTooltip: {fileID: 988976478}
   _leftArmArmorBar: {fileID: 988976477}
+  _rightArmArmorTooltip: {fileID: 881498130}
   _rightArmArmorBar: {fileID: 881498129}
+  _leftLegArmorTooltip: {fileID: 1840909783}
   _leftLegArmorBar: {fileID: 92027759}
+  _rightLegArmorTooltip: {fileID: 2027202832}
   _rightLegArmorBar: {fileID: 2027202831}
   _mechEnergyShieldPanel: {fileID: 1941826882}
+  _energyShieldTooltip: {fileID: 1101361618}
   _energyShieldBar: {fileID: 39676161}
   _popupPanel: {fileID: 1881586914}
   _confirmButton: {fileID: 367043949}
@@ -9302,6 +9429,18 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 7588681977448772475, guid: 24f2252186fc5d9468bf9b785ee65f58, type: 3}
   m_PrefabInstance: {fileID: 263523253}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &2027202832
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2027202831}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: acad9154537d45745bfadb36f9f7227d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TestModule::HoverableItemTooltip
 --- !u!1 &2030050323
 GameObject:
   m_ObjectHideFlags: 0
@@ -9337,7 +9476,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 200, y: 50}
+  m_SizeDelta: {x: 0, y: 25}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2030050325
 CanvasRenderer:
@@ -9367,7 +9506,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: New Text
+  m_text: Weapon Name
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: b1c16ff05b55b8443890784c2463ad11, type: 2}
   m_sharedMaterial: {fileID: 941085279586083903, guid: b1c16ff05b55b8443890784c2463ad11, type: 2}
@@ -9791,7 +9930,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 7588681977448772475, guid: 24f2252186fc5d9468bf9b785ee65f58, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1101361618}
   m_SourcePrefab: {fileID: 100100000, guid: 24f2252186fc5d9468bf9b785ee65f58, type: 3}
 --- !u!224 &2121678232 stripped
 RectTransform:
