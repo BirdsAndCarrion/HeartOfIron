@@ -77,7 +77,7 @@ public class CombatManager : MonoBehaviour
     {
         EventRouter.RegisterWithHub(this);
         EventRouter.ROnMechDeclaredActive.AddListener(SetActiveMech);
-        EventRouter.ROnMechSelected.AddListener(SetActiveMech);
+        // EventRouter.ROnMechSelected.AddListener(SetActiveMech);
         EventRouter.ROnMechDestroyed.AddListener(HandleMechDestroyed);
         UpdateCombatState(CombatState.Loading);
         Camera.main.transform.position = new Vector3(TERRAIN_WIDTH / 2f, 50, 10);
@@ -88,7 +88,7 @@ public class CombatManager : MonoBehaviour
     void OnDestroy()
     {
         EventRouter.ROnMechDeclaredActive.RemoveListener(SetActiveMech);
-        EventRouter.ROnMechSelected.RemoveListener(SetActiveMech);
+        // EventRouter.ROnMechSelected.RemoveListener(SetActiveMech);
         EventRouter.ROnMechDestroyed.RemoveListener(HandleMechDestroyed);
         EventRouter.UnregisterFromHub(this);
     }

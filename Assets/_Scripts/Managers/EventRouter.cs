@@ -15,10 +15,14 @@ public static class EventRouter
     public static UnityEvent<MechController> OnMechDestroyed = new UnityEvent<MechController>();
     public static readonly Queue<UnityEvent<MechController>> MechDestroyedEventQueue = new Queue<UnityEvent<MechController>>();
     private static bool isProcessingMechDestroyedQueue = false;
+    public static UnityEvent<ActionMarker, int> OnAddActionToMech = new UnityEvent<ActionMarker, int>();
+    private static readonly Queue<UnityEvent<ActionMarker, int>> AddActionToMechEventQueue = new Queue<UnityEvent<ActionMarker, int>>();
+    private static bool isProcessingAddActionToMechQueue = false;
 
     public static UnityEvent<MechController> ROnMechDeclaredActive = new UnityEvent<MechController>();
     public static UnityEvent<MechController> ROnMechSelected = new UnityEvent<MechController>();
     public static UnityEvent<MechController> ROnMechDestroyed = new UnityEvent<MechController>();
+    public static UnityEvent<ActionMarker, int> ROnAddActionToMech = new UnityEvent<ActionMarker, int>();
 
     private static int mechRegisteredCount = 0;
 
@@ -34,10 +38,12 @@ public static class EventRouter
         OnMechDeclaredActive.RemoveListener(OnMechDeclaredActiveHandler);
         OnMechSelected.RemoveListener(OnMechSelectedHandler);
         OnMechDestroyed.RemoveListener(OnMechDestroyedHandler);
+        OnAddActionToMech.RemoveListener(OnAddActionToMechHandler);
 
         OnMechDeclaredActive.AddListener(OnMechDeclaredActiveHandler);
         OnMechSelected.AddListener(OnMechSelectedHandler);
         OnMechDestroyed.AddListener(OnMechDestroyedHandler);
+        OnAddActionToMech.AddListener(OnAddActionToMechHandler);
 
         mechRegisteredCount++;
     }
@@ -56,6 +62,7 @@ public static class EventRouter
             OnMechDeclaredActive.RemoveListener(OnMechDeclaredActiveHandler);
             OnMechSelected.RemoveListener(OnMechSelectedHandler);
             OnMechDestroyed.RemoveListener(OnMechDestroyedHandler);
+            OnAddActionToMech.RemoveListener(OnAddActionToMechHandler);
         }
     }
 
@@ -104,6 +111,21 @@ public static class EventRouter
                 evt?.Invoke(mechController);
             }
             isProcessingMechDestroyedQueue = false;
+        }
+    }
+
+    private static void OnAddActionToMechHandler(ActionMarker actionMarker, int index)
+    {
+        AddActionToMechEventQueue.Enqueue(ROnAddActionToMech);
+        if (!isProcessingAddActionToMechQueue)
+        {
+            isProcessingAddActionToMechQueue = true;
+            while (AddActionToMechEventQueue.Count > 0)
+            {
+                var evt = AddActionToMechEventQueue.Dequeue();
+                evt?.Invoke(actionMarker, index);
+            }
+            isProcessingAddActionToMechQueue = false;
         }
     }
 
@@ -603,4 +625,8 @@ public static class EventRouter
             isProcessingHoverableMechControllerInteractionExitQueue = false;
         }
     }
+
+
 }
+
+

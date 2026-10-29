@@ -5,6 +5,7 @@ using UnityEngine.EventSystems;
 public class DragDrop : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 { 
     private ActionMarker actionMarker;
+    public ActionMarker ActionMarker => actionMarker;
     public bool active = false;
     public bool interactable = true;
     private RectTransform rectTransform;

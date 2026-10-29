@@ -75,7 +75,7 @@ public class InputManager : MonoBehaviour
             if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, ~LayerMask.GetMask("Ignore Raycast")) && (CombatManager.Instance.CombatState == CombatState.Playing || CombatManager.Instance.CombatState == CombatState.Paused))
             {
                 Debug.Log($"Ping hit {hit.collider.gameObject.name} at position {hit.point}");
-                ActionMarker actionMarker = ActionMarkerAssembler.Instance.AssembleActionMarker(hit.point,CombatManager.Instance.ActiveMech);
+                ActionMarker actionMarker = ActionMarkerAssembler.Instance.AssembleActionMarker(hit.point, CombatManager.Instance.ActiveMech);
             }
         }
         

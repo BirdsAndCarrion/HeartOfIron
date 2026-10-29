@@ -399,6 +399,7 @@ public class MechController : MonoBehaviour, ISelectable, IDamageable
         {
             Debug.Log($"Adding ActionMarker: {actionMarker.Id} to Mech: {_mech.Name}");
             _actionMarkers.Add(actionMarker);
+            EventRouter.OnAddActionToMech?.Invoke(actionMarker, _actionMarkers.Count - 1);
         } else {
             Debug.LogWarning($"ActionMarker {actionMarker?.Id} is already in the list or is invalid. Cannot add to Mech: {_mech.Name}.");
         }
@@ -414,6 +415,7 @@ public class MechController : MonoBehaviour, ISelectable, IDamageable
         if (!_actionMarkers.Contains(actionMarker) && actionMarker != null && actionMarker.Id != Guid.Empty && actionMarker.ActionPair != null && actionMarker.ActionPair.MovementAction != null)
         {
             _actionMarkers.Insert(index, actionMarker);
+            EventRouter.OnAddActionToMech?.Invoke(actionMarker, index);
         }
         else
         {

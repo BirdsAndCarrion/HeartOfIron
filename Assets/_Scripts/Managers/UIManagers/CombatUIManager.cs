@@ -145,7 +145,9 @@ public class CombatUIManager : MonoBehaviour
         EventRouter.ROnDeploymentStarted.AddListener(ShowDeploymentPanel);
         // EventRouter.ROnDeploymentStarted.AddListener(TestEventRecieved);
         EventRouter.ROnCombatStateChanged.AddListener(HandleCombatStateChanged);
+        EventRouter.ROnMechSelected.AddListener(OnSelected);
         EventRouter.ROnActionMarkerSelected.AddListener(OnSelected);
+        EventRouter.ROnAddActionToMech.AddListener(AddActionToDisplay); 
         EventRouter.ROnHoverableMechControllerInteractionEnter.AddListener(OnHoverableMechControllerInteractionEnter);
         EventRouter.ROnHoverableMechControllerInteractionExit.AddListener(OnHoverableMechControllerInteractionExit);
         EventRouter.ROnHoverableItemTooltipEnter.AddListener(OnHoverableItemTooltipEnter);
@@ -166,6 +168,8 @@ public class CombatUIManager : MonoBehaviour
         // EventRouter.ROnDeploymentStarted.RemoveListener(TestEventRecieved);
         EventRouter.ROnCombatStateChanged.RemoveListener(HandleCombatStateChanged);
         EventRouter.ROnActionMarkerSelected.RemoveListener(OnSelected);
+        EventRouter.ROnAddActionToMech.RemoveListener(AddActionToDisplay); 
+        EventRouter.ROnMechSelected.RemoveListener(OnSelected);
         EventRouter.ROnHoverableMechControllerInteractionEnter.RemoveListener(OnHoverableMechControllerInteractionEnter);
         EventRouter.ROnHoverableMechControllerInteractionExit.RemoveListener(OnHoverableMechControllerInteractionExit);
         EventRouter.ROnHoverableItemTooltipEnter.RemoveListener(OnHoverableItemTooltipEnter);
@@ -247,6 +251,7 @@ public class CombatUIManager : MonoBehaviour
         }
         _deploymentPanel.SetActive(false);
         _bottomBarPanel.SetActive(true);
+        CreatePlayerMechActionDisplays();
     }
 
     /// <summary>
@@ -261,6 +266,7 @@ public class CombatUIManager : MonoBehaviour
         _selectedActionMarker = ActionMarkerAssembler.Instance.AssembleActionMarker(mechController.transform.position, mechController, false);
         _selectedMechController.InsertActionMarkerAt(_selectedActionMarker, 0);
         ShowMechInfoPanel(mechController);
+        HideOtherMechActionDisplays(mechController);
         await ShowActionSelectionPanel();
     }
 
@@ -275,7 +281,27 @@ public class CombatUIManager : MonoBehaviour
         _selectedMechController = actionMarker.ActionPair.MovementAction.SourceMech;
         _selectedActionMarker = actionMarker;
         ShowMechInfoPanel(actionMarker.ActionPair.MovementAction.SourceMech);
+        HideOtherMechActionDisplays(actionMarker.ActionPair.MovementAction.SourceMech);
         await ShowActionSelectionPanel();
+    }
+
+    private void HideOtherMechActionDisplays(MechController mechController)
+    {
+        foreach (MechController mech in _playerMechActionDisplays.Keys)
+        {
+            if (mech != mechController)
+            {
+                _playerMechActionDisplays[mech].SetActive(false);
+            }
+        }
+    }
+
+    private void ShowMechActionDisplays()
+    {
+        foreach (GameObject gO in _playerMechActionDisplays.Values)
+        {
+            gO.SetActive(true);
+        }
     }
 
     /// <summary>
@@ -286,6 +312,7 @@ public class CombatUIManager : MonoBehaviour
     {
         HideMechInfoPanel();
         HideActionSelectionPanel();
+        ShowMechActionDisplays();
     }
 
     /// <summary>
@@ -612,6 +639,8 @@ public class CombatUIManager : MonoBehaviour
                 await ClosePanels();
                 break;
         }
+        GameObject savedIndex = GetActionDisplayElement(_selectedActionMarker);
+        
     }
 
     private void EnableTargetSelectionButton(bool enable)
@@ -784,6 +813,10 @@ public class CombatUIManager : MonoBehaviour
         List<MechController> potentialTargets = CombatManager.Instance.GetVisibleEnemyMechs();
         foreach (MechController target in potentialTargets)
         {
+            if (target.Mech.Faction == _selectedMechController.Mech.Faction)
+            {
+                continue;
+            }
             GameObject option = Instantiate(_popupOptionButtonPrefab, _optionsPanel.transform);
             option.GetComponentInChildren<TMP_Text>().text = target.Mech.Name;
             option.GetComponent<Button>().onClick.AddListener(() => OnTargetSelected(option, target));
@@ -875,7 +908,7 @@ public class CombatUIManager : MonoBehaviour
     /// <returns>The initial offset as a Vector3.</returns>
     private Vector3 GetInitialOffsetX(GameObject go)
     {
-        return new Vector3(go.GetComponent<RectTransform>().rect.width / 2 + TOOLTIP_OFFSET_X, go.GetComponent<RectTransform>().rect.height / 2, 0);
+        return new Vector3(go.GetComponent<RectTransform>().rect.width + TOOLTIP_OFFSET_X, go.GetComponent<RectTransform>().rect.height, 0);
     }
 
     /// <summary>
@@ -1305,41 +1338,85 @@ public class CombatUIManager : MonoBehaviour
             actionDisplay.GetComponent<RectTransform>().anchoredPosition = new Vector2(0, -yOffset);
             actionDisplay.GetComponent<RectTransform>().localScale = Vector3.one;
             actionDisplay.name = $"PlayerMechActionDisplay_{playerMechs[i].Mech.Name}";
-            actionDisplay.GetComponentInChildren<Text>().text = playerMechs[i].Mech.Name;
+            PlayerActionDisplayInternal actionDisplayInternal = actionDisplay.GetComponent<PlayerActionDisplayInternal>();
+            actionDisplayInternal.Text.text = playerMechs[i].Mech.Name;
             _playerMechActionDisplays[playerMechs[i]] = actionDisplay;
         }
     }
 
-    public void AddActionToDisplay(ActionMarker actionMarker)
+    public void AddActionToDisplay(ActionMarker actionMarker, int index)
     {
         MechController mechController = actionMarker.SourceMech;
         if (_playerMechActionDisplays.ContainsKey(mechController))
         {
             GameObject actionDisplay = _playerMechActionDisplays[mechController];
-            GameObject action = GameObject.Instantiate(_playerMechActionPrefab, actionDisplay.transform);
-            StringBuilder sb = new StringBuilder();
-            sb.Append(actionMarker.ActionPair.MovementAction.Destination);
-            sb.Append(" ");
-            if (actionMarker.ActionPair.SecondaryAction != null && actionMarker.ActionPair.MovementAction.ActionType != ActionType.Charge)
-                sb.Append(actionMarker.ActionPair.SecondaryAction.ActionType);
-            else if (actionMarker.ActionPair.MovementAction.ActionType == ActionType.Charge)
-                sb.Append("Charge");
-            else
-                sb.Append("Move");
-            action.GetComponentInChildren<Text>().text = sb.ToString();
+            PlayerActionDisplayInternal actionDisplayInternal = actionDisplay.GetComponent<PlayerActionDisplayInternal>();
+            GameObject content = actionDisplayInternal.Content;
+            GameObject action = GameObject.Instantiate(_playerMechActionPrefab, content.transform);
+            action.transform.SetSiblingIndex(index);
+            PlayerActionElementInternal actionElementInternal = action.GetComponent<PlayerActionElementInternal>();
+            StringBuilder sb = GetActionDisplayStringBuilder(actionMarker);
+            actionElementInternal.ActionText.text = sb.ToString();
             if (actionMarker.ActionPair.MovementAction.ActionType == ActionType.Charge)
             {
-                action.GetComponent<DragDrop>().interactable = false;
-                action.GetComponent<Image>().color = _popupOptionButtonSelectedColor;
+                actionElementInternal.DragDrop.interactable = false;
+                actionElementInternal.ActionImage.color = _popupOptionButtonSelectedColor;
             } else
             {
-                action.GetComponent<DragDrop>().interactable = true;
-                action.GetComponent<Image>().color = _popupOptionButtonColor;
+                actionElementInternal.DragDrop.interactable = true;
+                actionElementInternal.ActionImage.color = _popupOptionButtonColor;
             }
-            action.GetComponent<DragDrop>().SetActionMarker(actionMarker);
-            action.GetComponentInChildren<Button>().onClick.RemoveAllListeners();
-            action.GetComponentInChildren<Button>().onClick.AddListener(() => RemoveActionFromDisplay(action, actionMarker));
+            actionElementInternal.DragDrop.SetActionMarker(actionMarker);
+            actionElementInternal.RemoveButton.onClick.RemoveAllListeners();
+            actionElementInternal.RemoveButton.onClick.AddListener(() => RemoveActionFromDisplay(action, actionMarker));
         }
+    }
+
+    public void UpdateActionDisplay(GameObject action)
+    {
+        if (action == null) return;
+        StringBuilder sb = GetActionDisplayStringBuilder(action.GetComponent<DragDrop>().ActionMarker);
+        PlayerActionElementInternal actionElementInternal = action.GetComponent<PlayerActionElementInternal>();
+        actionElementInternal.ActionText.text = sb.ToString();
+    }
+
+    private StringBuilder GetActionDisplayStringBuilder(ActionMarker actionMarker)
+    {
+        StringBuilder sb = new StringBuilder();
+        if (actionMarker == null) return sb;
+        Vector3 destination = actionMarker.ActionPair.MovementAction.Destination;
+        int roundedX = Mathf.RoundToInt(destination.x);
+        int roundedY = Mathf.RoundToInt(destination.y);
+        int roundedZ = Mathf.RoundToInt(destination.z);
+        sb.Append($"({roundedX}, {roundedY}, {roundedZ})");
+        sb.Append(" ");
+        if (actionMarker.ActionPair.SecondaryAction != null && actionMarker.ActionPair.MovementAction.ActionType != ActionType.Charge)
+            sb.Append(actionMarker.ActionPair.SecondaryAction.ActionType);
+        else if (actionMarker.ActionPair.MovementAction.ActionType == ActionType.Charge)
+            sb.Append("Charge");
+        else
+            sb.Append("Move");
+        return sb;
+    }
+
+    public GameObject GetActionDisplayElement(ActionMarker actionMarker)
+    {
+        MechController mechController = actionMarker.SourceMech;
+        if (_playerMechActionDisplays.TryGetValue(mechController, out GameObject actionDisplay))
+        {
+            PlayerActionDisplayInternal actionDisplayInternal = actionDisplay.GetComponent<PlayerActionDisplayInternal>();
+            GameObject content = actionDisplayInternal.Content;
+            for (int i = 0; i < content.transform.childCount; i++)
+            {
+                GameObject action = content.transform.GetChild(i).gameObject;
+                PlayerActionElementInternal actionElementInternal = action.GetComponent<PlayerActionElementInternal>();
+                if (actionElementInternal.DragDrop != null && actionElementInternal.DragDrop.ActionMarker == actionMarker)
+                {
+                    return action;
+                }
+            }
+        }
+        return null;
     }
 
     public void RemoveActionFromDisplay(GameObject action, ActionMarker actionMarker)
@@ -1348,6 +1425,4 @@ public class CombatUIManager : MonoBehaviour
         mechController.RemoveActionMarker(actionMarker);
         Destroy(action);
     }
-
-    // TODO: Implement functionality to display the action markers information in the UI when an action is selected in the action display
 }
