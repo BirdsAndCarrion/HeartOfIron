@@ -6,7 +6,8 @@ using HeartOfIron.Enums;
 using HeartOfIron.Structs;
 
 [RequireComponent(typeof(NavMeshAgent)), RequireComponent(typeof(EquippingModule))
-, RequireComponent(typeof(AnimatorController)), RequireComponent(typeof(ShaderParamController))]
+, RequireComponent(typeof(AnimatorController)), RequireComponent(typeof(ShaderParamController)),
+RequireComponent(typeof(MechCooldownProgressIndicator))]
 public class MechController : MonoBehaviour, ISelectable, IDamageable
 {
     [SerializeField] private float ACTION_MARKER_REACHED_THRESHOLD = 1.5f;
@@ -41,6 +42,7 @@ public class MechController : MonoBehaviour, ISelectable, IDamageable
     public Animator Animator;
     private AnimatorController _animatorController;
     private ShaderParamController _shaderParamController;
+    private MechCooldownProgressIndicator _mechCooldownProgressIndicator;
 
     void Awake()
     {
@@ -86,6 +88,14 @@ public class MechController : MonoBehaviour, ISelectable, IDamageable
         }
         _animatorController.Init(Animator);
         _shaderParamController.Init(gameObject.GetComponent<Renderer>().material);
+        _mechCooldownProgressIndicator = GetComponent<MechCooldownProgressIndicator>();
+        if (_mechCooldownProgressIndicator == null)
+        {
+            Debug.LogError("MechCooldownProgressIndicator component is missing from the MechController.");
+        } else
+        {
+            Debug.Log($"MechCooldownProgressIndicator found: {_mechCooldownProgressIndicator.name}");
+        }
     }
 
     void Update()
@@ -552,5 +562,22 @@ public class MechController : MonoBehaviour, ISelectable, IDamageable
     public Inventory GetInventory()
     {
         return _mech.Inventory;
+    }
+
+    public void ShowCooldownProgress(float progress, float maxProgress)
+    {
+        if (_mechCooldownProgressIndicator != null)
+        {
+            _mechCooldownProgressIndicator.UpdateCooldownProgress(progress, maxProgress);
+            _mechCooldownProgressIndicator.SetActive(true);
+        }
+    }
+    
+    public void HideCooldownProgress()
+    {
+        if (_mechCooldownProgressIndicator != null)
+        {
+            _mechCooldownProgressIndicator.SetActive(false);
+        }
     }
 }

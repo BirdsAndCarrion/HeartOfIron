@@ -626,7 +626,73 @@ public static class EventRouter
         }
     }
 
+    public static UnityEvent<Item> OnHoverableItemInteractionEnter = new UnityEvent<Item>();
+    public static UnityEvent<Item> ROnHoverableItemInteractionEnter = new UnityEvent<Item>();
+    public static UnityEvent OnHoverableItemInteractionExit = new UnityEvent();
+    public static UnityEvent ROnHoverableItemInteractionExit = new UnityEvent();
+    private static readonly Queue<UnityEvent<Item>> HoverableItemInteractionEnterEventQueue = new Queue<UnityEvent<Item>>();
+    private static readonly Queue<UnityEvent> HoverableItemInteractionExitEventQueue = new Queue<UnityEvent>();
+    private static int hoverableItemInteractionEnterCount = 0;
+    private static bool isProcessingHoverableItemInteractionEnterQueue = false;
+    private static bool isProcessingHoverableItemInteractionExitQueue = false;
 
+
+    public static void RegisterWithHub(HoverableItemInteraction hoverableItemInteraction)
+    {
+        if (hoverableItemInteraction == null)
+        {
+            return;
+        }
+        hoverableItemInteractionEnterCount++;
+        if (hoverableItemInteractionEnterCount == 1)
+        {
+            OnHoverableItemInteractionEnter.AddListener(OnHoverableItemInteractionEnterHandler);
+            OnHoverableItemInteractionExit.AddListener(OnHoverableItemInteractionExitHandler);
+        }
+    }
+
+    public static void UnregisterFromHub(HoverableItemInteraction hoverableItemInteraction)
+    {
+        if (hoverableItemInteraction == null)
+        {
+            return;
+        }
+        hoverableItemInteractionEnterCount = Mathf.Max(hoverableItemInteractionEnterCount - 1, 0);
+        if (hoverableItemInteractionEnterCount == 0)
+        {
+            OnHoverableItemInteractionEnter.RemoveListener(OnHoverableItemInteractionEnterHandler);
+            OnHoverableItemInteractionExit.RemoveListener(OnHoverableItemInteractionExitHandler);
+        }
+    }
+
+    private static void OnHoverableItemInteractionEnterHandler(Item item)
+    {
+        HoverableItemInteractionEnterEventQueue.Enqueue(ROnHoverableItemInteractionEnter);
+        if (!isProcessingHoverableItemInteractionEnterQueue)
+        {
+            isProcessingHoverableItemInteractionEnterQueue = true;
+            while (HoverableItemInteractionEnterEventQueue.Count > 0)
+            {
+                UnityEvent<Item> evt = HoverableItemInteractionEnterEventQueue.Dequeue();
+                evt?.Invoke(item);
+            }
+            isProcessingHoverableItemInteractionEnterQueue = false;
+        }
+    }
+    private static void OnHoverableItemInteractionExitHandler()
+    {
+        HoverableItemInteractionExitEventQueue.Enqueue(ROnHoverableItemInteractionExit);
+        if (!isProcessingHoverableItemInteractionExitQueue)
+        {
+            isProcessingHoverableItemInteractionExitQueue = true;
+            while (HoverableItemInteractionExitEventQueue.Count > 0)
+            {
+                UnityEvent evt = HoverableItemInteractionExitEventQueue.Dequeue();
+                evt?.Invoke();
+            }
+            isProcessingHoverableItemInteractionExitQueue = false;
+        }
+    }
 }
 
 

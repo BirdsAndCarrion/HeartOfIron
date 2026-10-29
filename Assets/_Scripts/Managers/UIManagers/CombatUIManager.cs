@@ -152,6 +152,8 @@ public class CombatUIManager : MonoBehaviour
         EventRouter.ROnHoverableMechControllerInteractionExit.AddListener(OnHoverableMechControllerInteractionExit);
         EventRouter.ROnHoverableItemTooltipEnter.AddListener(OnHoverableItemTooltipEnter);
         EventRouter.ROnHoverableItemTooltipExit.AddListener(OnHoverableItemTooltipExit);
+        EventRouter.ROnHoverableItemInteractionEnter.AddListener(OnHoverableItemInteractionEnter);
+        EventRouter.ROnHoverableItemInteractionExit.AddListener(OnHoverableItemInteractionExit);
     }
 
     void Start()
@@ -174,6 +176,8 @@ public class CombatUIManager : MonoBehaviour
         EventRouter.ROnHoverableMechControllerInteractionExit.RemoveListener(OnHoverableMechControllerInteractionExit);
         EventRouter.ROnHoverableItemTooltipEnter.RemoveListener(OnHoverableItemTooltipEnter);
         EventRouter.ROnHoverableItemTooltipExit.RemoveListener(OnHoverableItemTooltipExit);
+        EventRouter.ROnHoverableItemInteractionEnter.RemoveListener(OnHoverableItemInteractionEnter);
+        EventRouter.ROnHoverableItemInteractionExit.RemoveListener(OnHoverableItemInteractionExit);
     }
     
     void Update()
@@ -716,6 +720,7 @@ public class CombatUIManager : MonoBehaviour
             GameObject option = Instantiate(_popupOptionButtonPrefab, _optionsPanel.transform);
             option.GetComponentInChildren<TMP_Text>().text = rangedAttack.Weapon.Name;
             option.GetComponent<Button>().onClick.AddListener(() => OnRangedWeaponSelected(option, rangedAttack));
+            option.AddComponent<HoverableItemInteraction>().item = rangedAttack.Weapon;
         }
 
     }
@@ -767,6 +772,7 @@ public class CombatUIManager : MonoBehaviour
             GameObject option = Instantiate(_popupOptionButtonPrefab, _optionsPanel.transform);
             option.GetComponentInChildren<TMP_Text>().text = meleeAttack.Weapon.Name;
             option.GetComponent<Button>().onClick.AddListener(() => OnMeleeWeaponSelected(option, meleeAttack));
+            option.AddComponent<HoverableItemInteraction>().item = meleeAttack.Weapon;
         }
     }
 
@@ -1424,5 +1430,34 @@ public class CombatUIManager : MonoBehaviour
         MechController mechController = actionMarker.SourceMech;
         mechController.RemoveActionMarker(actionMarker);
         Destroy(action);
+    }
+
+    private void OnHoverableItemInteractionEnter(Item item)
+    {
+        if (item == null) return;
+        if (!(item is Weapon)) return;
+        Weapon weapon = (Weapon)item;
+        Mech mech = weapon.Owner;
+        if (mech == null) return;
+        Attack attack = mech.Inventory.WeaponToRangedAttackMap[weapon];
+        if (attack == null)
+            attack = mech.Inventory.WeaponToMeleeAttackMap[weapon];
+        if (attack == null) return;
+        if (_selectedActionMarker == null && _selectedMechController == null) return;
+        MechController mechController = _selectedMechController;
+        if (mechController == null)
+            mechController = _selectedActionMarker?.SourceMech;
+        if (mechController == null) return;
+        mechController.ShowCooldownProgress(attack.Timer, attack.Cooldown);
+    }
+
+    private void OnHoverableItemInteractionExit()
+    {
+        if (_selectedActionMarker == null && _selectedMechController == null) return;
+        MechController mechController = _selectedMechController;
+        if (mechController == null)
+            mechController = _selectedActionMarker?.SourceMech;
+        if (mechController == null) return;
+        mechController.HideCooldownProgress();
     }
 }
